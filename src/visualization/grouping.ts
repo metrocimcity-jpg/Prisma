@@ -1,4 +1,5 @@
 import type { FileIndex, IndexNode } from "@/data/types";
+import { ACC_METADATA_KEYS, presentAccValue } from "@/metadata/accTaxonomy";
 import type { GroupBy, SizeBy, VizNode } from "./types";
 import { defaultSizeMapper } from "./SizeMapper";
 
@@ -20,7 +21,7 @@ function groupKey(node: IndexNode, key: GroupBy, customProperty: string): string
     const value = node.metadata?.[accKey];
     return value === undefined || value === null || String(value).trim().length === 0
       ? "(none)"
-      : String(value);
+      : presentAccValue(accKey, String(value));
   }
   switch (key) {
     case "extension":
@@ -47,7 +48,13 @@ function groupKey(node: IndexNode, key: GroupBy, customProperty: string): string
     }
     case "custom": {
       const value = node.metadata?.[customProperty];
-      return value === undefined || value === null ? "(none)" : String(value);
+      if (value === undefined || value === null || String(value).trim().length === 0) {
+        return "(none)";
+      }
+      if ((ACC_METADATA_KEYS as readonly string[]).includes(customProperty)) {
+        return presentAccValue(customProperty, String(value));
+      }
+      return String(value);
     }
     case "folder":
     default:

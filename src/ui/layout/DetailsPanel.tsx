@@ -1,3 +1,4 @@
+import { ACC_METADATA_KEYS, presentAccValue } from "@/metadata/accTaxonomy";
 import { actions, usePrisma } from "@/state/store";
 import { openableWebUrlFromMetadata } from "@/utils/webLinks";
 import { formatBytes, formatDate, formatNumber } from "@/utils/format";
@@ -21,12 +22,18 @@ function formatMetadataLabel(key: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function formatMetadataValue(value: unknown): string {
+function formatMetadataValue(key: string, value: unknown): string {
   if (value === null || value === undefined) {
     return "—";
   }
   if (typeof value === "string") {
-    return value.trim().length === 0 ? "—" : value;
+    if (value.trim().length === 0) {
+      return "—";
+    }
+    if ((ACC_METADATA_KEYS as readonly string[]).includes(key)) {
+      return presentAccValue(key, value);
+    }
+    return value;
   }
   if (typeof value === "number" || typeof value === "boolean") {
     return String(value);
@@ -99,8 +106,8 @@ export function DetailsPanel(): JSX.Element {
                   <span className="k" title={key}>
                     {formatMetadataLabel(key)}
                   </span>
-                  <span className="v" title={formatMetadataValue(value)}>
-                    {formatMetadataValue(value)}
+                  <span className="v" title={formatMetadataValue(key, value)}>
+                    {formatMetadataValue(key, value)}
                   </span>
                 </div>
               ))}

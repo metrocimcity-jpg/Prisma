@@ -108,46 +108,66 @@ const METADATA_ALIASES: Record<string, string[]> = {
   ],
 };
 
-function compactAccName(raw: string): string {
+function readableAccName(raw: string): string {
   return raw
     .replace(/\(\s*Reserved\s*\)/gi, "")
     .replace(/\bReserved\b/gi, "")
-    .trim()
-    .replace(/\s+/g, "");
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-/** Format taxonomy labels: keep code, short name in brackets — e.g. F0326 [FECA]. */
+/** Full taxonomy name, with spaces kept. Codes are not included. */
 export function formatAccLabel(raw: string, code?: string): string {
-  const withoutReserved = raw
-    .replace(/\(\s*Reserved\s*\)/gi, "")
-    .replace(/\bReserved\b/gi, "")
-    .trim();
-  const dashParts = withoutReserved.split(/\s*[—–]\s*/);
-  let codePart = code?.trim() || "";
-  let namePart = withoutReserved;
-  if (dashParts.length >= 2) {
-    codePart = codePart || dashParts[0].trim();
-    namePart = dashParts.slice(1).join("-").trim();
+  const cleaned = readableAccName(raw);
+  const dashParts = cleaned.split(/\s*[—–]\s*/);
+  const namePart = dashParts.length >= 2 ? readableAccName(dashParts.slice(1).join("-")) : cleaned;
+  if (namePart.length > 0 && namePart.toLowerCase() !== "null") {
+    return namePart;
   }
-  const compact = compactAccName(namePart);
-  if (codePart.length > 0) {
-    return `${codePart} [${compact || codePart}]`;
-  }
-  return `[${compact || "?"}]`;
+  const fallback = code?.trim();
+  return fallback && fallback.length > 0 ? fallback : "?";
 }
 
 function displayValue(item: AccTaxonomyItem): string {
-  if (item.discipline && item.subdiscipline) {
-    const name =
-      item.subdiscipline.toLowerCase() === "general"
-        ? item.discipline
-        : `${item.discipline} ${item.subdiscipline}`;
-    return `${item.code} [${compactAccName(name)}]`;
+  if (item.discipline) {
+    const combined =
+      item.subdiscipline && item.subdiscipline.toLowerCase() !== "general"
+        ? `${item.discipline} — ${item.subdiscipline}`
+        : item.discipline;
+    const name = readableAccName(combined);
+    if (name.length > 0) {
+      return name;
+    }
   }
-  if (item.name) {
-    return `${item.code} [${compactAccName(item.name)}]`;
+  if (item.name && item.name.trim().toLowerCase() !== "null") {
+    const name = readableAccName(item.name);
+    if (name.length > 0) {
+      return name;
+    }
   }
-  return `[${item.code}]`;
+  return item.code;
+}
+
+const STORED_CODE = /^([A-Za-z0-9]+)\s*\[/;
+
+/** Resolve a stored code, `CODE [name]`, or plain name to the full parameter name. */
+export function presentAccValue(levelKey: string, raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) {
+    return "(none)";
+  }
+  const direct = CODE_LOOKUPS[levelKey]?.get(trimmed.toUpperCase());
+  if (direct) {
+    return displayValue(direct);
+  }
+  const embedded = trimmed.match(STORED_CODE)?.[1];
+  if (embedded) {
+    const item = CODE_LOOKUPS[levelKey]?.get(embedded.toUpperCase());
+    if (item) {
+      return displayValue(item);
+    }
+  }
+  return formatAccLabel(trimmed);
 }
 
 function readAlias(metadata: Record<string, unknown> | undefined, key: string): string | null {
@@ -184,8 +204,7 @@ export function inferAccTaxonomy(
   for (const level of ACC_TAXONOMY_LEVELS) {
     const fromMeta = readAlias(existing, level.key);
     if (fromMeta) {
-      const lookup = CODE_LOOKUPS[level.key]?.get(fromMeta.toUpperCase());
-      result[level.key] = lookup ? displayValue(lookup) : formatAccLabel(fromMeta);
+      result[level.key] = presentAccValue(level.key, fromMeta);
     }
   }
 

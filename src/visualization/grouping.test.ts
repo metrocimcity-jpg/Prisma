@@ -30,6 +30,17 @@ describe("grouping", () => {
     const categories = tree.children.map((child) => child.label).sort();
     expect(categories).toEqual(["BIM", "CAD"]);
   });
+
+  it("groups ACC categories by the full parameter name", () => {
+    const index = buildFileIndex({
+      rootName: "p",
+      rootPath: "p",
+      entries: [file("L-AC-AE-GT-F0326-ACS0-DRG-1.rvt", 10)],
+    });
+    const visible = new Set(index.items.filter((item) => item.nodeType === "file").map((item) => item.id));
+    const tree = buildGroupedTree(index, visible, ["accSubProgram"], "fileSize", "");
+    expect(tree.children.map((child) => child.label)).toEqual(["Airfield Electrical & Civil"]);
+  });
 });
 
 describe("squarify", () => {
