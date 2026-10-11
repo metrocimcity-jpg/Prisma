@@ -26,7 +26,7 @@ export function Toolbar(): JSX.Element {
     <header className="topbar">
       <div className="brand">
         <div className="mark">
-          Disk<span>Prisma</span>
+          <span>Prisma</span>
         </div>
         <div className="tag">file &amp; folder treemap — grouped by type / size / date</div>
       </div>
@@ -47,7 +47,31 @@ export function Toolbar(): JSX.Element {
           <FolderIcon />
           Merge folder
         </button>
-        <button type="button" title="FoamTree settings" onClick={() => actions.setPanel("settings", !panels.settings)}>
+        <button
+          type="button"
+          className={panels.analysis ? "is-on" : undefined}
+          title="Charts for the open folder"
+          aria-pressed={panels.analysis}
+          onClick={() => actions.setPanel("analysis", !panels.analysis)}
+        >
+          Analysis
+        </button>
+        <button
+          type="button"
+          className={panels.preview ? "is-on" : undefined}
+          title="Preview the selected file"
+          aria-pressed={panels.preview}
+          onClick={() => actions.setPanel("preview", !panels.preview)}
+        >
+          Preview
+        </button>
+        <button
+          type="button"
+          className={panels.settings ? "is-on" : undefined}
+          title="FoamTree settings"
+          aria-pressed={panels.settings}
+          onClick={() => actions.setPanel("settings", !panels.settings)}
+        >
           Settings
         </button>
         <details className="more-menu">

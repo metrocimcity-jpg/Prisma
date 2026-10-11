@@ -1,7 +1,7 @@
 /**
  * Ensures read permission, then returns a File for the handle.
  */
-async function readFile(handle: FileSystemFileHandle): Promise<File> {
+export async function readLocalFile(handle: FileSystemFileHandle): Promise<File> {
   const permissionHandle = handle as FileSystemFileHandle & {
     queryPermission?: (options?: { mode?: "read" | "readwrite" }) => Promise<PermissionState>;
     requestPermission?: (options?: { mode?: "read" | "readwrite" }) => Promise<PermissionState>;
@@ -40,7 +40,7 @@ export async function openLocalFileHandle(
   handle: FileSystemFileHandle,
   options?: { startIn?: FileSystemDirectoryHandle },
 ): Promise<"saved" | "downloaded"> {
-  const file = await readFile(handle);
+  const file = await readLocalFile(handle);
 
   if (typeof window.showSaveFilePicker === "function") {
     try {

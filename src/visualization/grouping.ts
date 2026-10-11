@@ -1,6 +1,6 @@
 import type { FileIndex, IndexNode } from "@/data/types";
 import { ACC_METADATA_KEYS, presentAccValue } from "@/metadata/accTaxonomy";
-import type { GroupBy, SizeBy, VizNode } from "./types";
+import type { GroupBy, GroupLevel, SizeBy, VizNode } from "./types";
 import { defaultSizeMapper } from "./SizeMapper";
 
 const OTHER_LABEL = "Other";
@@ -15,8 +15,23 @@ const ACC_GROUP_KEYS: Partial<Record<GroupBy, string>> = {
   accDocumentType: "ACC-Document Type",
 };
 
-function groupKey(node: IndexNode, key: GroupBy, customProperty: string): string {
-  const accKey = ACC_GROUP_KEYS[key];
+function metadataLabel(node: IndexNode, property: string): string {
+  const value = node.metadata?.[property];
+  if (value === undefined || value === null || String(value).trim().length === 0) {
+    return "(none)";
+  }
+  const text = String(value);
+  if ((ACC_METADATA_KEYS as readonly string[]).includes(property)) {
+    return presentAccValue(property, text);
+  }
+  return text;
+}
+
+function groupKey(node: IndexNode, key: GroupLevel, customProperty: string): string {
+  if (key.startsWith("meta:")) {
+    return metadataLabel(node, key.slice(5));
+  }
+  const accKey = ACC_GROUP_KEYS[key as GroupBy];
   if (accKey) {
     const value = node.metadata?.[accKey];
     return value === undefined || value === null || String(value).trim().length === 0
@@ -56,7 +71,13 @@ function groupKey(node: IndexNode, key: GroupBy, customProperty: string): string
       }
       return String(value);
     }
-    case "folder":
+    case "folder": {
+      const parts = node.relativePath.split("/").filter((part) => part.length > 0);
+      if (parts.length <= 1) {
+        return "(root)";
+      }
+      return parts[parts.length - 2] ?? "(root)";
+    }
     default:
       return node.parentId ?? "/";
   }
@@ -81,7 +102,7 @@ function sizeBucket(size: number): string {
   return "100 MB +";
 }
 
-function colorKeyFor(node: IndexNode, colorByFallback: GroupBy, customProperty: string): string {
+function colorKeyFor(node: IndexNode, colorByFallback: GroupLevel, customProperty: string): string {
   return groupKey(node, colorByFallback, customProperty);
 }
 
@@ -141,11 +162,11 @@ export function buildFolderTree(
 export function buildGroupedTree(
   index: FileIndex,
   visibleIds: Set<string>,
-  groups: GroupBy[],
+  groups: GroupLevel[],
   sizeBy: SizeBy,
   customProperty: string,
 ): VizNode {
-  if (groups.length === 0 || groups[0] === "folder") {
+  if (groups.length === 0 || (groups.length === 1 && groups[0] === "folder")) {
     return buildFolderTree(index, visibleIds, sizeBy, customProperty);
   }
 

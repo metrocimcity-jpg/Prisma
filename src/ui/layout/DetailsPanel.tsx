@@ -1,4 +1,4 @@
-import { ACC_METADATA_KEYS, presentAccValue } from "@/metadata/accTaxonomy";
+import { ACC_METADATA_KEYS, abbreviateAccValue, presentAccValue } from "@/metadata/accTaxonomy";
 import { actions, usePrisma } from "@/state/store";
 import { openableWebUrlFromMetadata } from "@/utils/webLinks";
 import { formatBytes, formatDate, formatNumber } from "@/utils/format";
@@ -22,6 +22,10 @@ function formatMetadataLabel(key: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+function isAccMetadataKey(key: string): boolean {
+  return (ACC_METADATA_KEYS as readonly string[]).includes(key);
+}
+
 function formatMetadataValue(key: string, value: unknown): string {
   if (value === null || value === undefined) {
     return "—";
@@ -30,8 +34,8 @@ function formatMetadataValue(key: string, value: unknown): string {
     if (value.trim().length === 0) {
       return "—";
     }
-    if ((ACC_METADATA_KEYS as readonly string[]).includes(key)) {
-      return presentAccValue(key, value);
+    if (isAccMetadataKey(key)) {
+      return abbreviateAccValue(key, value);
     }
     return value;
   }
@@ -43,6 +47,15 @@ function formatMetadataValue(key: string, value: unknown): string {
   } catch {
     return String(value);
   }
+}
+
+function metadataTitle(key: string, value: unknown): string {
+  if (typeof value === "string" && isAccMetadataKey(key) && value.trim().length > 0) {
+    const full = presentAccValue(key, value);
+    const code = abbreviateAccValue(key, value);
+    return full === code ? full : `${code} — ${full}`;
+  }
+  return formatMetadataValue(key, value);
 }
 
 export function DetailsPanel(): JSX.Element {
@@ -106,7 +119,7 @@ export function DetailsPanel(): JSX.Element {
                   <span className="k" title={key}>
                     {formatMetadataLabel(key)}
                   </span>
-                  <span className="v" title={formatMetadataValue(key, value)}>
+                  <span className="v" title={metadataTitle(key, value)}>
                     {formatMetadataValue(key, value)}
                   </span>
                 </div>

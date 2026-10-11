@@ -31,6 +31,25 @@ describe("grouping", () => {
     expect(categories).toEqual(["BIM", "CAD"]);
   });
 
+  it("groups by a JSON metadata key, then file type", () => {
+    const index = buildFileIndex({
+      rootName: "p",
+      rootPath: "p",
+      entries: [file("north/a.rvt", 10), file("south/b.dwg", 20)],
+    });
+    for (const item of index.items) {
+      if (item.nodeType !== "file") {
+        continue;
+      }
+      item.metadata = { Zone: item.name.startsWith("a") ? "North" : "South" };
+    }
+    const visible = new Set(index.items.filter((item) => item.nodeType === "file").map((item) => item.id));
+    const tree = buildGroupedTree(index, visible, ["meta:Zone", "extension"], "fileSize", "");
+    expect(tree.children.map((child) => child.label).sort()).toEqual(["North", "South"]);
+    const north = tree.children.find((child) => child.label === "North");
+    expect(north?.children.map((child) => child.label)).toEqual(["rvt"]);
+  });
+
   it("groups ACC categories by the full parameter name", () => {
     const index = buildFileIndex({
       rootName: "p",

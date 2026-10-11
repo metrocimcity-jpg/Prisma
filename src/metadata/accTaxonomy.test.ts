@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAccLabel, inferAccTaxonomy, isAccAcceleratorNamed, mergeAccTaxonomyMetadata } from "@/metadata/accTaxonomy";
+import { abbreviateAccValue, formatAccLabel, inferAccTaxonomy, isAccAcceleratorNamed, mergeAccTaxonomyMetadata } from "@/metadata/accTaxonomy";
 
 describe("formatAccLabel", () => {
   it("uses the full parameter name and drops the code", () => {
@@ -12,6 +12,25 @@ describe("formatAccLabel", () => {
     expect(formatAccLabel("Drawing", "DRG")).toBe("Drawing");
     expect(formatAccLabel("Aeronautical Communication System", "ACS0")).toBe(
       "Aeronautical Communication System",
+    );
+  });
+});
+
+describe("abbreviateAccValue", () => {
+  it("shows the taxonomy code for a full parameter name", () => {
+    expect(abbreviateAccValue("ACC-Portfolio", "Long Term Investment in Facilities and Terminals")).toBe("L");
+    expect(abbreviateAccValue("ACC-Program", "Accelerator")).toBe("AC");
+    expect(abbreviateAccValue("ACC-Sub Program", "Airfield Electrical & Civil")).toBe("AE");
+    expect(abbreviateAccValue("ACC-Originator", "PACT")).toBe("PD");
+    expect(abbreviateAccValue("ACC-Location", "FEC B")).toBe("F0327");
+    expect(abbreviateAccValue("ACC-Discipline", "Electrical and Emergency Power")).toBe("ELE0");
+    expect(abbreviateAccValue("ACC-Document Type", "Model - 3D")).toBe("M3D");
+  });
+
+  it("keeps a code that is already stored", () => {
+    expect(abbreviateAccValue("ACC-Document Type", "DRG")).toBe("DRG");
+    expect(abbreviateAccValue("ACC-Discipline", "Aeronautical Communication System — Voice Communication Systems")).toBe(
+      "ACS1",
     );
   });
 });

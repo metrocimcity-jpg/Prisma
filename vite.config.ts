@@ -12,6 +12,10 @@ export default defineConfig({
   worker: {
     format: "es",
   },
+  optimizeDeps: {
+    exclude: ["web-ifc"],
+  },
+  assetsInclude: ["**/*.wasm"],
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],

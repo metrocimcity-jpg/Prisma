@@ -3,9 +3,13 @@ import { DetailsPanel } from "@/ui/layout/DetailsPanel";
 import { actions, usePrisma } from "@/state/store";
 import { collectMetadataKeys } from "@/data/metadataKeys";
 import { colorForExt } from "@/visualization/palettes";
+import { scopeStats } from "@/visualization/scopeStats";
+import { findVizNode, focusedVizNode } from "@/visualization/tree";
 import { formatBytes, formatNumber } from "@/utils/format";
 import { isFilterActive } from "@/filtering/FilterEngine";
-import type { ColorBy, GroupBy, LayoutMode } from "@/visualization/types";
+import { HierarchyList } from "@/ui/layout/HierarchyList";
+import { hierarchyCatalog } from "@/ui/layout/hierarchy";
+import type { ColorBy, GroupBy, GroupLevel, LayoutMode } from "@/visualization/types";
 import { indexShowsAccTaxonomy } from "@/metadata/accTaxonomy";
 
 const ACC_GROUP_BY = new Set<string>([
@@ -18,14 +22,38 @@ const ACC_GROUP_BY = new Set<string>([
   "accDocumentType",
 ]);
 
-function groupValue(groupBy: GroupBy[]): string {
-  if (groupBy[0] === "folder") {
+const GROUP_PRESETS = new Set([
+  "folder",
+  "extension",
+  "extension,size",
+  "size",
+  "date",
+  "date,extension",
+  "category",
+  "category,fileType,extension",
+  "accPortfolio",
+  "accProgram",
+  "accSubProgram",
+  "accOriginator",
+  "accLocation",
+  "accDiscipline",
+  "accDocumentType",
+  "custom",
+]);
+
+function groupValue(groupBy: GroupLevel[]): string {
+  if (groupBy.length === 1 && groupBy[0] === "folder") {
     return "folder";
   }
-  if (groupBy[0] === "custom") {
+  if (groupBy.length === 1 && groupBy[0] === "custom") {
     return "custom";
   }
   return groupBy.join(",");
+}
+
+function hierarchySummary(groupBy: readonly GroupLevel[], metadataKeys: readonly string[]): string {
+  const labels = new Map(hierarchyCatalog(metadataKeys).map((field) => [field.id, field.label]));
+  return groupBy.map((id) => labels.get(id) ?? id).join(" → ");
 }
 
 function formatPropertyLabel(key: string): string {
@@ -36,29 +64,20 @@ function formatPropertyLabel(key: string): string {
 }
 
 export function Sidebar(): JSX.Element {
-  const { config, index, visibleCount, search, filters } = usePrisma();
+  const { config, index, vizTree, focusPath, selectedId, search, filters } = usePrisma();
   const viz = config.visualization;
-  const files = index?.items.filter((item) => item.nodeType === "file") ?? [];
-  const totalSize = index?.statistics.totalSize ?? 0;
   const matching = search.trim().length > 0 || isFilterActive(filters);
   const metadataKeys = collectMetadataKeys(index);
   const showAccGroups = indexShowsAccTaxonomy(index);
-
-  const extUniverse = Object.entries(
-    files.reduce<Record<string, { count: number; size: number }>>((acc, file) => {
-      const ext = file.extension ?? "no extension";
-      const current = acc[ext] ?? { count: 0, size: 0 };
-      current.count += 1;
-      current.size += file.size;
-      acc[ext] = current;
-      return acc;
-    }, {}),
-  )
-    .map(([ext, stats]) => ({ ext, ...stats }))
-    .sort((a, b) => b.size - a.size);
-
-  const top = extUniverse.slice(0, 8);
+  const focused = vizTree ? focusedVizNode(vizTree, focusPath) : null;
+  const selectedViz = selectedId && vizTree ? findVizNode(vizTree, selectedId) : null;
+  const scopeNode = selectedViz && selectedViz.nodeType !== "file" ? selectedViz : focused;
+  const scope = scopeNode ? scopeStats(scopeNode) : null;
+  const atRoot = Boolean(vizTree && scopeNode && scopeNode.id === vizTree.id);
+  const scopeLabel = atRoot ? "All files" : (scopeNode?.label ?? "");
+  const top = scope?.types.slice(0, 8) ?? [];
   const maxSize = top[0]?.size ?? 1;
+  const scopeSize = scope?.totalSize ?? 0;
   const stacking = viz.style.stacking;
 
   return (
@@ -115,7 +134,32 @@ export function Sidebar(): JSX.Element {
             </>
           ) : null}
           {metadataKeys.length > 0 ? <option value="custom">Document metadata…</option> : null}
+          {!GROUP_PRESETS.has(groupValue(viz.groupBy)) ? (
+            <option value={groupValue(viz.groupBy)}>{hierarchySummary(viz.groupBy, metadataKeys)}</option>
+          ) : null}
         </select>
+
+        <label className="field-label" htmlFor="hierarchy">
+          Hierarchy
+        </label>
+        <HierarchyList
+          metadataKeys={metadataKeys}
+          groupBy={viz.groupBy}
+          onChange={(groupBy) => {
+            const accLabels = ACC_GROUP_BY.has(groupBy[0] ?? "");
+            actions.patchVisualization({
+              groupBy,
+              ...(accLabels
+                ? {
+                    style: {
+                      groupLabelMinFontSize: 4,
+                      groupLabelMaxFontSize: 22,
+                    },
+                  }
+                : {}),
+            });
+          }}
+        />
 
         <label className="field-label" htmlFor="color-by">
           Color by
@@ -183,27 +227,35 @@ export function Sidebar(): JSX.Element {
 
       <div className="card">
         <h3>Overview</h3>
-        {index ? (
+        {index && scope ? (
           <>
+            <div className="detail-title" title={scopeLabel}>
+              {scopeLabel}
+            </div>
             <div className="stat-line">
-              <span className="k">Total files</span>
-              <span className="v">{formatNumber(index.statistics.totalFiles)}</span>
+              <span className="k">Files</span>
+              <span className="v">{formatNumber(scope.fileCount)}</span>
             </div>
             <div className="stat-line">
               <span className="k">Total size</span>
-              <span className="v">{formatBytes(totalSize)}</span>
+              <span className="v">{formatBytes(scopeSize)}</span>
             </div>
-            {matching ? (
-              <>
-                <div className="stat-line">
-                  <span className="k">Matching</span>
-                  <span className="v accentv">{formatNumber(visibleCount)}</span>
-                </div>
-              </>
+            {scope.groupCount > 0 ? (
+              <div className="stat-line">
+                <span className="k">Groups</span>
+                <span className="v">{formatNumber(scope.groupCount)}</span>
+              </div>
+            ) : null}
+            {matching && atRoot && scope.fileCount !== index.statistics.totalFiles ? (
+              <div className="stat-line">
+                <span className="k">In project</span>
+                <span className="v accentv">{formatNumber(index.statistics.totalFiles)}</span>
+              </div>
             ) : null}
             <label className="field-label">Top types by size</label>
+            {top.length === 0 ? <div className="detail-empty">No files in this view.</div> : null}
             {top.map((entry) => {
-              const pct = totalSize ? (entry.size / totalSize) * 100 : 0;
+              const pct = scopeSize ? (entry.size / scopeSize) * 100 : 0;
               const fill = colorForExt(entry.ext === "no extension" ? null : entry.ext);
               return (
                 <div className="legend-row" key={entry.ext}>

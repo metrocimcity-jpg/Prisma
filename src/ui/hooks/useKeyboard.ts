@@ -39,6 +39,14 @@ export function useKeyboard(): void {
           actions.setPanel("commandPalette", false);
           return;
         }
+        if (panels.analysis) {
+          actions.setPanel("analysis", false);
+          return;
+        }
+        if (panels.preview) {
+          actions.setPanel("preview", false);
+          return;
+        }
         if (panels.settings) {
           actions.setPanel("settings", false);
           return;

@@ -32,6 +32,34 @@ export const ACC_TAXONOMY_LEVELS = ACC_TAXONOMY.levels;
 /** Stable metadata keys written onto IndexNode.metadata */
 export const ACC_METADATA_KEYS = ACC_TAXONOMY_LEVELS.map((level) => level.key);
 
+const METADATA_ALIASES: Record<string, string[]> = {
+  "ACC-Portfolio": ["ACC-Portfolio", "portfolio", "Portfolio", "L1", "L1 - Portfolio"],
+  "ACC-Program": ["ACC-Program", "program", "Program", "L2", "L2 - Program"],
+  "ACC-Sub Program": ["ACC-Sub Program", "subProgram", "Sub Program", "SubProgram", "L3", "L3 - Sub Program"],
+  "ACC-Originator": ["ACC-Originator", "originator", "Originator", "L4", "L4 - Originator"],
+  "ACC-Location": ["ACC-Location", "location", "Location", "projectLocation", "L5", "L5 - Location"],
+  "ACC-Discipline": ["ACC-Discipline", "discipline", "Discipline", "L6", "L6 - Discipline"],
+  "ACC-Document Type": [
+    "ACC-Document Type",
+    "documentType",
+    "Document Type",
+    "docType",
+    "L7",
+    "L7 - Document Type",
+  ],
+};
+
+/** True when a metadata key is already represented by an ACC grouping field. */
+export function isAccMetadataAlias(key: string): boolean {
+  const needle = key.trim().toLowerCase();
+  for (const [canonical, aliases] of Object.entries(METADATA_ALIASES)) {
+    if (canonical.toLowerCase() === needle || aliases.some((alias) => alias.toLowerCase() === needle)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** True when a filename follows Accelerator naming: L-AC-… */
 export function isAccAcceleratorNamed(fileName: string, relativePath = ""): boolean {
   const base = fileName.replace(/\.[^.]+$/i, "");
@@ -91,22 +119,26 @@ const CODE_LOOKUPS: Record<string, Map<string, AccTaxonomyItem>> = Object.fromEn
   ]),
 );
 
-const METADATA_ALIASES: Record<string, string[]> = {
-  "ACC-Portfolio": ["ACC-Portfolio", "portfolio", "Portfolio", "L1", "L1 - Portfolio"],
-  "ACC-Program": ["ACC-Program", "program", "Program", "L2", "L2 - Program"],
-  "ACC-Sub Program": ["ACC-Sub Program", "subProgram", "Sub Program", "SubProgram", "L3", "L3 - Sub Program"],
-  "ACC-Originator": ["ACC-Originator", "originator", "Originator", "L4", "L4 - Originator"],
-  "ACC-Location": ["ACC-Location", "location", "Location", "projectLocation", "L5", "L5 - Location"],
-  "ACC-Discipline": ["ACC-Discipline", "discipline", "Discipline", "L6", "L6 - Discipline"],
-  "ACC-Document Type": [
-    "ACC-Document Type",
-    "documentType",
-    "Document Type",
-    "docType",
-    "L7",
-    "L7 - Document Type",
-  ],
-};
+function nameKey(value: string): string {
+  return value
+    .replace(/[—–-]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+const NAME_LOOKUPS: Record<string, Map<string, string>> = Object.fromEntries(
+  ACC_TAXONOMY_LEVELS.map((level) => {
+    const names = new Map<string, string>();
+    for (const item of level.items) {
+      const label = nameKey(displayValue(item));
+      if (!names.has(label)) {
+        names.set(label, item.code);
+      }
+    }
+    return [level.key, names];
+  }),
+);
 
 function readableAccName(raw: string): string {
   return raw
@@ -170,7 +202,60 @@ export function presentAccValue(levelKey: string, raw: string): string {
   return formatAccLabel(trimmed);
 }
 
-function readAlias(metadata: Record<string, unknown> | undefined, key: string): string | null {
+/** Taxonomy code for a stored code, `CODE [name]`, or full parameter name. */
+export function abbreviateAccValue(levelKey: string, raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) {
+    return "(none)";
+  }
+  const direct = CODE_LOOKUPS[levelKey]?.get(trimmed.toUpperCase());
+  if (direct) {
+    return direct.code;
+  }
+  const embedded = trimmed.match(STORED_CODE)?.[1];
+  if (embedded) {
+    const item = CODE_LOOKUPS[levelKey]?.get(embedded.toUpperCase());
+    if (item) {
+      return item.code;
+    }
+  }
+  const names = NAME_LOOKUPS[levelKey];
+  const fromName = names?.get(nameKey(trimmed)) ?? names?.get(nameKey(presentAccValue(levelKey, trimmed)));
+  if (fromName) {
+    return fromName;
+  }
+  return trimmed;
+}
+
+/** Discipline family name, so subdisciplines share one color. */
+export function accDisciplineName(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) {
+    return "No discipline";
+  }
+  const code = abbreviateAccValue("ACC-Discipline", trimmed);
+  const item = CODE_LOOKUPS["ACC-Discipline"]?.get(code.toUpperCase());
+  if (item?.discipline) {
+    const name = readableAccName(item.discipline);
+    if (name.length > 0) {
+      return name;
+    }
+  }
+  const presented = presentAccValue("ACC-Discipline", trimmed);
+  return presented === "(none)" ? "No discipline" : presented;
+}
+
+/** Readable subprogram name for the chart axis. */
+export function accSubprogramName(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) {
+    return "No subprogram";
+  }
+  const presented = presentAccValue("ACC-Sub Program", trimmed);
+  return presented === "(none)" ? "No subprogram" : presented;
+}
+
+export function accMetadataRaw(metadata: Record<string, unknown> | undefined, key: string): string | null {
   if (!metadata) {
     return null;
   }
@@ -202,7 +287,7 @@ export function inferAccTaxonomy(
 ): Record<string, string> {
   const result: Record<string, string> = {};
   for (const level of ACC_TAXONOMY_LEVELS) {
-    const fromMeta = readAlias(existing, level.key);
+    const fromMeta = accMetadataRaw(existing, level.key);
     if (fromMeta) {
       result[level.key] = presentAccValue(level.key, fromMeta);
     }

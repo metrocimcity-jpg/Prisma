@@ -28,6 +28,27 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+const METADATA_TIMEOUT_MS = 800;
+const METADATA_TIMEOUTS_BEFORE_SKIP = 2;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new DOMException("Timed out reading file metadata", "TimeoutError"));
+    }, ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 async function* iterateEntries(
   handle: FileSystemDirectoryHandle,
 ): AsyncGenerator<[string, FileSystemHandle], void, undefined> {
@@ -55,6 +76,8 @@ export class BrowserFileScanner implements FileScanner {
     let filesScanned = 0;
     let foldersScanned = 1;
     let totalSize = 0;
+    let metadataReads = true;
+    let metadataTimeouts = 0;
 
     const emit = (phase: ScanProgress["phase"], currentPath: string): void => {
       options.onProgress?.({
@@ -102,38 +125,68 @@ export class BrowserFileScanner implements FileScanner {
             emit("scanning", childRelative);
             await walk(handle as FileSystemDirectoryHandle, childRelative);
           } else {
-            try {
-              const file = await (handle as FileSystemFileHandle).getFile();
-              handles.set(createNodeId(childRelative), handle);
-              filesScanned += 1;
-              totalSize += file.size;
-              const attributes: FileAttributes = {
-                hidden: hiddenFromName(name),
-                system: null,
-                readOnly: null,
-                executable: null,
-                symbolicLink: null,
-              };
-              entries.push({
-                relativePath: childRelative,
-                name,
-                nodeType: "file",
-                size: file.size,
-                createdAt: null,
-                modifiedAt: Number.isFinite(file.lastModified)
-                  ? new Date(file.lastModified).toISOString()
-                  : null,
-                accessedAt: null,
-                attributes,
-                mimeHint: file.type.length > 0 ? file.type : null,
-              });
-              if (filesScanned % 50 === 0) {
-                emit("scanning", childRelative);
-                await yieldToMain();
-              }
-            } catch (error) {
-              errors.push(toScanError(childRelative, "stat", error));
+            handles.set(createNodeId(childRelative), handle);
+            filesScanned += 1;
+            if (filesScanned === 1 || filesScanned % 25 === 0) {
+              emit("scanning", childRelative);
+              await yieldToMain();
             }
+            if (options.signal?.aborted) {
+              throw new DOMException("Scan cancelled", "AbortError");
+            }
+
+            let size = 0;
+            let modifiedAt: string | null = null;
+            let mimeHint: string | null = null;
+            if (metadataReads) {
+              try {
+                const file = await withTimeout((handle as FileSystemFileHandle).getFile(), METADATA_TIMEOUT_MS);
+                size = file.size;
+                totalSize += size;
+                modifiedAt = Number.isFinite(file.lastModified) ? new Date(file.lastModified).toISOString() : null;
+                mimeHint = file.type.length > 0 ? file.type : null;
+              } catch (error) {
+                if (error instanceof DOMException && error.name === "AbortError") {
+                  throw error;
+                }
+                if (error instanceof DOMException && error.name === "TimeoutError") {
+                  metadataTimeouts += 1;
+                  if (metadataTimeouts >= METADATA_TIMEOUTS_BEFORE_SKIP) {
+                    metadataReads = false;
+                    errors.push(
+                      toScanError(
+                        childRelative,
+                        "stat",
+                        new Error(
+                          "Stopped reading file sizes because cloud files did not respond. Every file name is still included.",
+                        ),
+                      ),
+                    );
+                  }
+                } else {
+                  errors.push(toScanError(childRelative, "stat", error));
+                }
+              }
+            }
+
+            const attributes: FileAttributes = {
+              hidden: hiddenFromName(name),
+              system: null,
+              readOnly: null,
+              executable: null,
+              symbolicLink: null,
+            };
+            entries.push({
+              relativePath: childRelative,
+              name,
+              nodeType: "file",
+              size,
+              createdAt: null,
+              modifiedAt,
+              accessedAt: null,
+              attributes,
+              mimeHint,
+            });
           }
         }
       } catch (error) {

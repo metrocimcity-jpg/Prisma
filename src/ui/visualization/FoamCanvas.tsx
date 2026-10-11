@@ -16,6 +16,57 @@ function sourceIdFrom(group: PrismaFoamGroup | undefined): string | null {
   return group?.sourceId ?? group?.id ?? null;
 }
 
+function foamInteractionOptions() {
+  return {
+    onGroupClick: (event: FoamTreeEvent) => {
+      actions.select(sourceIdFrom(event.group as PrismaFoamGroup | undefined));
+    },
+    onGroupDoubleClick: (event: FoamTreeEvent) => {
+      const group = event.group as PrismaFoamGroup | undefined;
+      if (!group) {
+        return;
+      }
+      const isFile = group.isFile === true || group.nodeType === "file";
+      if (!isFile) {
+        return;
+      }
+      event.preventDefault?.();
+      const id = sourceIdFrom(group);
+      if (!id) {
+        return;
+      }
+      actions.select(id);
+      void actions.openNode(id);
+    },
+    onGroupHover: (event: FoamTreeEvent) => {
+      actions.hover(event.group ? String((event.group as PrismaFoamGroup).id) : null);
+    },
+    onGroupSelectionChanged: (event: FoamTreeEvent) => {
+      const first = event.groups?.[0] as PrismaFoamGroup | undefined;
+      actions.select(sourceIdFrom(first));
+    },
+    onGroupExposureChanged: (event: FoamTreeEvent) => {
+      const exposed = (event.groups ?? []) as PrismaFoamGroup[];
+      if (exposed.length === 0) {
+        actions.setFocusPath([]);
+        return;
+      }
+      actions.setFocusPath(exposed.map((group) => String(group.id)));
+    },
+    titleBarDecorator: (
+      _options: unknown,
+      properties: { group?: PrismaFoamGroup },
+      variables: { titleBarText?: string },
+    ) => {
+      const group = properties.group;
+      if (!group) {
+        return;
+      }
+      variables.titleBarText = `${group.label} · ${formatBytes(group.size)}`;
+    },
+  };
+}
+
 export function FoamCanvas(): JSX.Element {
   const { vizTree, config, selectedId } = usePrisma();
   const hostRef = useRef<HTMLDivElement>(null);
@@ -31,52 +82,7 @@ export function FoamCanvas(): JSX.Element {
       element,
       ...foamTreeViewOptions(config.visualization, cssColor("--bg", "#0f1115")),
       pixelRatio: window.devicePixelRatio || 1,
-      onGroupClick: (event: FoamTreeEvent) => {
-        actions.select(sourceIdFrom(event.group as PrismaFoamGroup | undefined));
-      },
-      onGroupDoubleClick: (event: FoamTreeEvent) => {
-        const group = event.group as PrismaFoamGroup | undefined;
-        if (!group) {
-          return;
-        }
-        const isFile = group.isFile === true || group.nodeType === "file";
-        if (!isFile) {
-          return;
-        }
-        event.preventDefault?.();
-        const id = sourceIdFrom(group);
-        if (!id) {
-          return;
-        }
-        actions.select(id);
-        void actions.openNode(id);
-      },
-      onGroupHover: (event: FoamTreeEvent) => {
-        actions.hover(event.group ? String((event.group as PrismaFoamGroup).id) : null);
-      },
-      onGroupSelectionChanged: (event: FoamTreeEvent) => {
-        const first = event.groups?.[0] as PrismaFoamGroup | undefined;
-        actions.select(sourceIdFrom(first));
-      },
-      onGroupExposureChanged: (event: FoamTreeEvent) => {
-        const exposed = (event.groups ?? []) as PrismaFoamGroup[];
-        if (exposed.length === 0) {
-          actions.setFocusPath([]);
-          return;
-        }
-        actions.setFocusPath(exposed.map((group) => String(group.id)));
-      },
-      titleBarDecorator: (
-        _options: unknown,
-        properties: { group?: PrismaFoamGroup },
-        variables: { titleBarText?: string },
-      ) => {
-        const group = properties.group;
-        if (!group) {
-          return;
-        }
-        variables.titleBarText = `${group.label} · ${formatBytes(group.size)}`;
-      },
+      ...foamInteractionOptions(),
     });
 
     foamRef.current = foamtree;
@@ -122,6 +128,7 @@ export function FoamCanvas(): JSX.Element {
       return;
     }
     foamtree.set(foamTreeViewOptions(config.visualization, cssColor("--bg", "#0f1115")));
+    foamtree.set(foamInteractionOptions());
   }, [config.theme, config.visualization]);
 
   useEffect(() => {

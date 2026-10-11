@@ -4,6 +4,8 @@ import { SettingsDialog } from "@/ui/dialogs/SettingsDialog";
 import { SharePointBrowserDialog } from "@/ui/dialogs/SharePointBrowserDialog";
 import { EmptyState } from "@/ui/empty/EmptyState";
 import { useKeyboard } from "@/ui/hooks/useKeyboard";
+import { AnalysisSchedule } from "@/ui/layout/AnalysisSchedule";
+import { PreviewPanel } from "@/ui/layout/PreviewPanel";
 import { Sidebar } from "@/ui/layout/Sidebar";
 import { StatusBar } from "@/ui/layout/StatusBar";
 import { Toolbar } from "@/ui/layout/Toolbar";
@@ -38,8 +40,9 @@ export function AppShell(): JSX.Element {
       <div className="layout">
         {panels.filters ? <Sidebar /> : null}
         <main className={`stage ${tone}`} style={{ background }}>
-          {index ? <VizStage /> : <EmptyState />}
+          {panels.analysis ? <AnalysisSchedule /> : index ? <VizStage /> : <EmptyState />}
         </main>
+        {panels.preview ? <PreviewPanel /> : null}
         {panels.settings ? <SettingsDialog /> : null}
       </div>
       <StatusBar />

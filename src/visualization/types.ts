@@ -40,6 +40,9 @@ export type GroupBy =
   | "accDiscipline"
   | "accDocumentType";
 
+/** A grouping level: a built-in field, or `meta:` plus a key from JSON or ACC metadata. */
+export type GroupLevel = GroupBy | `meta:${string}`;
+
 export type LayoutMode = "foam" | "treemap" | "circles" | "sunburst";
 
 /** Which canvas renderer draws the map */
@@ -132,7 +135,7 @@ export interface VisualizationConfig {
   renderer: VizRenderer;
   sizeBy: SizeBy;
   colorBy: ColorBy;
-  groupBy: GroupBy[];
+  groupBy: GroupLevel[];
   customProperty: string;
   palette: PaletteId;
   showLabels: boolean;

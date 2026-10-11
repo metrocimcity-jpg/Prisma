@@ -33,7 +33,8 @@ import { importSharePointDrive as buildSharePointIndex } from "@/sharepoint/impo
 import { loadSharePointSettings, saveSharePointSettings, type SharePointSettings } from "@/sharepoint/settings";
 import { describeAccLinkError, normalizeAccWebUrl } from "@/utils/accLinks";
 import { openWebUrl, openableWebUrlFromMetadata } from "@/utils/webLinks";
-import { copyText, openLocalFileHandle } from "@/utils/openFile";
+import { copyText, openLocalFileHandle, readLocalFile } from "@/utils/openFile";
+import { previewKind } from "@/utils/previewKind";
 import { buildGroupedTree } from "@/visualization/grouping";
 import { applyStylePreset as composeStylePreset, stylePresets } from "@/visualization/foamtree/stylePresets";
 import type { GroupBy, VisualizationStyle, VizNode } from "@/visualization/types";
@@ -65,6 +66,8 @@ export interface PrismaState {
     filters: boolean;
     details: boolean;
     settings: boolean;
+    preview: boolean;
+    analysis: boolean;
     commandPalette: boolean;
     sharePointBrowser: boolean;
   };
@@ -157,7 +160,7 @@ let state: PrismaState = {
   search: "",
   filters: emptyFilterState(),
   config: defaultAppConfig(),
-  panels: { filters: true, details: true, settings: true, commandPalette: false, sharePointBrowser: false },
+  panels: { filters: true, details: true, settings: false, preview: false, analysis: false, commandPalette: false, sharePointBrowser: false },
   presets: builtinPresets,
   visibleIds: new Set(),
   visibleCount: 0,
@@ -329,10 +332,15 @@ export const actions = {
     recompute({ config: { ...state.config, theme } });
   },
   select(id: string | null): void {
-    if (state.selectedId === id) {
+    const file = id ? fileNodeById(id) : null;
+    const showPreview = Boolean(file && previewKind(file) && !state.panels.analysis);
+    if (state.selectedId === id && !(showPreview && (!state.panels.preview || state.panels.settings))) {
       return;
     }
-    setState({ selectedId: id });
+    setState({
+      selectedId: id,
+      ...(showPreview ? { panels: { ...state.panels, preview: true, settings: false } } : {}),
+    });
   },
   hover(id: string | null): void {
     if (state.hoveredId === id) {
@@ -359,8 +367,56 @@ export const actions = {
   togglePanel(panel: "filters" | "details"): void {
     setState({ panels: { ...state.panels, [panel]: !state.panels[panel] } });
   },
-  setPanel(panel: "settings" | "commandPalette" | "sharePointBrowser", open: boolean): void {
-    setState({ panels: { ...state.panels, [panel]: open } });
+  setPanel(panel: "settings" | "preview" | "analysis" | "commandPalette" | "sharePointBrowser", open: boolean): void {
+    const panels = { ...state.panels, [panel]: open };
+    if (open && panel === "settings") {
+      panels.preview = false;
+      panels.analysis = false;
+    }
+    if (open && panel === "preview") {
+      panels.settings = false;
+      panels.analysis = false;
+    }
+    if (open && panel === "analysis") {
+      panels.preview = false;
+      panels.settings = false;
+    }
+    setState({ panels });
+  },
+  async loadLocalPreview(
+    id: string,
+    pick: boolean,
+  ): Promise<
+    | { status: "ready"; name: string; file: File }
+    | { status: "missing"; name: string }
+    | { status: "cancelled" }
+    | { status: "unsupported"; name: string }
+    | { status: "empty" }
+    | { status: "error"; message: string }
+  > {
+    const node = fileNodeById(id);
+    if (!node) {
+      return { status: "empty" };
+    }
+    if (!previewKind(node)) {
+      return { status: "unsupported", name: node.name };
+    }
+    try {
+      const resolved = await localFileHandle(node, pick);
+      if (resolved === "cancelled") {
+        return { status: "cancelled" };
+      }
+      if (resolved === "missing" || resolved === "stale") {
+        return { status: "missing", name: node.name };
+      }
+      const file = await readLocalFile(resolved);
+      return { status: "ready", name: node.name, file };
+    } catch (error) {
+      return {
+        status: "error",
+        message: error instanceof Error ? error.message : "Could not read the file",
+      };
+    }
   },
   applyPreset(preset: SavedPreset): void {
     document.documentElement.dataset.theme = preset.theme;
@@ -424,20 +480,24 @@ export const actions = {
     try {
       const handle = await window.showDirectoryPicker({ mode: "read" });
       scanCancel?.();
+      setState({ scanning: true, loadError: null, scan: preparingScan(handle.name) });
       const job = startDirectoryScan(handle, (progress) => {
         setState({ scan: progress, scanning: progress.phase !== "complete" && progress.phase !== "cancelled" });
       });
       scanCancel = job.cancel;
-      setState({ scanning: true, loadError: null, scan: null });
       const result = await job.done;
       rememberDirectory(result.index, handle);
+      const emptyFailure =
+        result.index.statistics.totalFiles === 0 && result.index.errors.length > 0
+          ? result.index.errors[0]?.message ?? "Folder scan failed"
+          : null;
       recompute({
         index: result.index,
         handles: result.handles,
         scanning: false,
         selectedId: null,
         focusPath: [],
-        loadError: null,
+        loadError: emptyFailure,
       });
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
@@ -485,11 +545,11 @@ export const actions = {
     try {
       const handle = await window.showDirectoryPicker({ mode: "read" });
       scanCancel?.();
+      setState({ scanning: true, loadError: null, scan: preparingScan(handle.name) });
       const job = startDirectoryScan(handle, (progress) => {
         setState({ scan: progress, scanning: progress.phase !== "complete" && progress.phase !== "cancelled" });
       });
       scanCancel = job.cancel;
-      setState({ scanning: true, loadError: null, scan: null });
       const result = await job.done;
       if (!state.index) {
         recompute({
@@ -670,45 +730,32 @@ export const actions = {
       }
       return;
     }
-    const index = state.index;
-    let handle = state.handles.get(node.id);
-    if (!handle || handle.kind !== "file") {
-      try {
-        let folder = await permittedLinkedDirectory(index);
-        let located = folder ? await resolveFileInFolder(folder, node, index.root.name) : null;
-        if (!located) {
-          linkedDirectory = null;
-          folder = await pickOriginalFolder(index);
-          located = await resolveFileInFolder(folder, node, index.root.name);
+    let handle: FileSystemFileHandle;
+    try {
+      const resolved = await localFileHandle(node, true);
+      if (resolved === "stale" || resolved === "cancelled") {
+        if (resolved === "cancelled") {
+          setState({ loadError: "Folder selection cancelled." });
         }
-        if (state.index !== index) {
-          return;
-        }
-        if (!located || !folder) {
-          setState({
-            loadError: `Cannot find “${node.name}” in “${folder?.name ?? index.root.name}”. Pick the same folder this JSON was scanned from (${index.root.name}).`,
-          });
-          return;
-        }
-        rememberDirectory(index, located.directory);
-        const nextHandles = new Map(state.handles);
-        nextHandles.set(node.id, located.file);
-        if (node.parentId) {
-          nextHandles.set(node.parentId, located.parent);
-        }
-        handle = located.file;
-        setState({ handles: nextHandles, loadError: null });
-      } catch (error) {
+        return;
+      }
+      if (resolved === "missing") {
         setState({
-          loadError: error instanceof Error ? error.message : "Could not link the original folder",
+          loadError: `Cannot find “${node.name}” in “${state.index?.root.name ?? "the selected folder"}”. Pick the same folder this JSON was scanned from (${state.index?.root.name ?? node.name}).`,
         });
         return;
       }
+      handle = resolved;
+    } catch (error) {
+      setState({
+        loadError: error instanceof Error ? error.message : "Could not link the original folder",
+      });
+      return;
     }
     try {
       const parent = node.parentId ? state.handles.get(node.parentId) : null;
       const startIn = parent?.kind === "directory" ? (parent as FileSystemDirectoryHandle) : undefined;
-      const result = await openLocalFileHandle(handle as FileSystemFileHandle, { startIn });
+      const result = await openLocalFileHandle(handle, { startIn });
       setState({
         loadError: null,
         acc: {
@@ -915,7 +962,7 @@ export const actions = {
             signedIn: true,
             message: "Signed in to Microsoft. Open Browse SharePoint to import a library.",
           },
-          panels: { ...state.panels, sharePointBrowser: true, settings: true },
+          panels: { ...state.panels, sharePointBrowser: true, settings: true, preview: false },
           loadError: null,
         });
       } else {
@@ -1069,11 +1116,88 @@ export const actions = {
   },
 };
 
+function preparingScan(path: string): ScanProgress {
+  return {
+    currentPath: path,
+    filesScanned: 0,
+    foldersScanned: 0,
+    totalSize: 0,
+    errors: 0,
+    elapsedMs: 0,
+    phase: "preparing",
+  };
+}
+
 function selectedNode(): IndexNode | null {
   if (!state.selectedId || !state.index) {
     return null;
   }
   return state.index.items.find((item) => item.id === state.selectedId) ?? null;
+}
+
+function fileNodeById(id: string): IndexNode | null {
+  if (!state.index) {
+    return null;
+  }
+  const direct = state.index.items.find((item) => item.id === id) ?? null;
+  if (direct?.nodeType === "file") {
+    return direct;
+  }
+  if (state.vizTree) {
+    const sourceId = findFileSourceId(state.vizTree, id);
+    if (sourceId) {
+      const fromTree = state.index.items.find((item) => item.id === sourceId) ?? null;
+      if (fromTree?.nodeType === "file") {
+        return fromTree;
+      }
+    }
+  }
+  return null;
+}
+
+async function localFileHandle(
+  node: IndexNode,
+  pick: boolean,
+): Promise<FileSystemFileHandle | "missing" | "cancelled" | "stale"> {
+  const existing = state.handles.get(node.id);
+  if (existing?.kind === "file") {
+    return existing as FileSystemFileHandle;
+  }
+  const index = state.index;
+  if (!index) {
+    return "missing";
+  }
+  let folder = await permittedLinkedDirectory(index);
+  let located = folder ? await resolveFileInFolder(folder, node, index.root.name) : null;
+  if (!located) {
+    if (!pick) {
+      return "missing";
+    }
+    try {
+      linkedDirectory = null;
+      folder = await pickOriginalFolder(index);
+    } catch (error) {
+      if (error instanceof Error && error.message === "Folder selection cancelled.") {
+        return "cancelled";
+      }
+      throw error;
+    }
+    located = await resolveFileInFolder(folder, node, index.root.name);
+  }
+  if (state.index !== index) {
+    return "stale";
+  }
+  if (!located || !folder) {
+    return "missing";
+  }
+  rememberDirectory(index, located.directory);
+  const nextHandles = new Map(state.handles);
+  nextHandles.set(node.id, located.file);
+  if (node.parentId) {
+    nextHandles.set(node.parentId, located.parent);
+  }
+  setState({ handles: nextHandles, loadError: null });
+  return located.file;
 }
 
 function findFileSourceId(node: VizNode, id: string): string | null {

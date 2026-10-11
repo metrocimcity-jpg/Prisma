@@ -51,6 +51,8 @@ export function CommandPalette(): JSX.Element | null {
       { id: "theme", label: "Toggle Dark Mode", run: () => actions.setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark") },
       { id: "details", label: "Toggle Details", run: () => actions.togglePanel("details") },
       { id: "filters", label: "Toggle Filters", run: () => actions.togglePanel("filters") },
+      { id: "analysis", label: "Open Analysis", run: () => actions.setPanel("analysis", true) },
+      { id: "preview", label: "Open Preview", run: () => actions.setPanel("preview", true) },
       { id: "settings", label: "Open Settings", run: () => actions.setPanel("settings", true) },
     ],
     [],
