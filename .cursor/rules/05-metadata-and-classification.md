@@ -67,3 +67,13 @@ metadata?: Record<string, unknown>;
 ```
 
 Keep frequently queried properties normalized for efficient filtering/search.
+
+## ACC taxonomy
+
+When ACC Accelerator fields are present on items, Prisma:
+
+- maps codes to full display names via `metadata/accTaxonomy.ts` + `taxonomy/accAcceleratorTaxonomy.json`;
+- exposes ACC group-by levels in the View panel;
+- can resolve ACC web links (`utils/accLinks`) after sign-in / Resolve ACC links.
+
+Do not invent ACC labels from filenames. Prefer taxonomy tables and stored metadata.

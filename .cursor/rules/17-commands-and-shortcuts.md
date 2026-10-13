@@ -1,40 +1,60 @@
 # Commands and Keyboard Shortcuts
 
-Recommended commands:
+Keep this list aligned with `CommandPalette.tsx` and `useKeyboard.ts`.
+
+## Command palette (Ctrl+K)
 
 ```text
 Open Folder
+Merge Folder
 Open JSON
-Rescan
+Merge JSON
+Browse SharePoint
+Style: FoamTree
+Style: Zoomable Circle Packing
+Style: Sequences Sunburst
+Style: Sunburst
+Resolve ACC Links
+Open Selected File
 Export JSON
 Export CSV
-Search Files
+Save Workspace
+Load Sample Index
 Clear Filters
 Reset Visualization
 Toggle Dark Mode
 Toggle Details
 Toggle Filters
-Change Grouping
-Change Coloring
-Change Size Mapping
-Find Duplicates
+Open Analysis
+Open Preview
 Open Settings
-Command Palette
-Save Workspace
-Load Workspace
 ```
 
-Recommended shortcuts:
+## Top bar / More (must close after choose)
 
 ```text
-Ctrl+O        Open Folder
-Ctrl+Shift+O  Open JSON
-Ctrl+F        Search
-Ctrl+K        Command Palette
-Esc           Clear selection / close overlay
-Backspace     Navigate back
-Enter         Open selected item
-Ctrl+R        Refresh/rescan
+Sample data
+Load folder
+Merge folder
+Analysis
+Preview
+Settings
+More → Open JSON, Merge JSON, Merge folder, Browse SharePoint,
+       Resolve ACC links, Export JSON/CSV, Save workspace,
+       analysis presets, theme, Toggle sidebar, Commands
+```
+
+## Keyboard
+
+```text
+Ctrl+O         Open Folder
+Ctrl+Shift+O   Open JSON
+Ctrl+F         Focus Search section (open sidebar if needed)
+Ctrl+K         Command Palette
+Ctrl+R         Rescan / Open Folder
+Esc            Close palette → Analysis → Preview → Settings → clear / up
+Backspace      Navigate back
+Enter          Open selected item
 ```
 
 Do not override browser/OS shortcuts unless there is a clear product reason.

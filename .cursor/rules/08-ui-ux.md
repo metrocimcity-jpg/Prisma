@@ -2,101 +2,106 @@
 
 ## Product Feel
 
-The application should feel like a premium filesystem analytics tool with a FoamTree settings workbench on the side.
+The application should feel like a premium filesystem analytics tool with FoamTree settings, Analysis, and Preview as first-class work surfaces.
 
 Avoid generic Bootstrap-dashboard aesthetics.
 
-Target qualities:
-
-- modern
-- technical
-- minimal
-- professional
-- high information density
-- polished
-- calm
-- responsive
+Target qualities: modern, technical, minimal, professional, high information density, polished, calm, responsive.
 
 ## Main Layout
 
-Preferred structure (Disk Prisma chrome + FoamTree settings):
-
 ```text
-Top bar (Disk Prisma brand, Sample data, Load folder, Settings, More)
+Top bar (Prisma brand, Sample, Load, Merge, Analysis, Preview, Settings, More)
 ------------------------------------------------
 Breadcrumb bar (⌂ all files › …)
 ------------------------------------------------
-Left sidebar | Visualization stage | FoamTree settings panel
+Sidebar rail + one section | FoamTree stage ‑or‑ Analysis | Preview | Settings
 ------------------------------------------------
 Status bar
 ```
 
-Left sidebar cards:
+Overlays: command palette, SharePoint browser, scan progress.
 
-- Search (query, extension chips, size/date filters)
-- View (group by, color by, stacking / display)
-- Overview (totals, top types legend)
-- Selection (selected file / group details)
+## Left Sidebar (rail)
 
-Panels should be:
+The icon rail stays visible when expanded. **Each icon shows only its panel** — never dump all cards into one scroll stack.
 
-- collapsible (sidebar / settings)
-- keyboard accessible
+| Icon | Section | Content |
+| --- | --- | --- |
+| Search | `search` | Search field + Filters (`FilterPanel`) |
+| View | `view` | Group by, hierarchy, color by, display stacking |
+| Overview | `overview` | Scope file/size stats, top types |
+| File Identity | `selection` | `DetailsPanel` for selection |
+
+Collapsed mode: rail only. Expanding via an icon reveals that section. Switching icons swaps content without scrolling other sections into view.
 
 ## Top Bar
 
 Include:
 
-- Brand: **Disk** + accent **Prisma**
+- Brand: **Prisma** + short tagline
 - Sample data
 - Load folder (primary)
-- Settings (toggle FoamTree settings panel)
-- More menu: Open JSON, Export JSON/CSV, workspace, analysis presets, theme, commands
+- Merge folder
+- Analysis (toggles analysis stage)
+- Preview (toggles preview panel)
+- Settings (toggles FoamTree settings panel)
+- **More** menu: Open/Merge JSON, SharePoint, Resolve ACC links, Export JSON/CSV, Save workspace, analysis presets, theme, toggle sidebar, Commands
+
+After any More submenu action, **close the More menu** (details element). Do not leave the popover open.
 
 ## Settings Panel
 
-Model the settings UI on the official [FoamTree settings demo](https://get.carrotsearch.com/foamtree/latest/demos/settings.html):
+Model on the official [FoamTree settings demo](https://get.carrotsearch.com/foamtree/latest/demos/settings.html):
 
 - search box for option names
-- foldable sections (Layout, Relaxation, Stacking, Borders, Fill, Stroke, Rainbow, Labels, Animation, …)
-- live sliders / enums / booleans
-- **Presets** section for Appearance, Color scheme, Borders & fill, Layout, Animation
-- **Export settings to JSON**
+- foldable sections
+- live controls
+- Presets (Appearance, Color scheme, Borders & fill, Layout, Animation)
+- Export settings to JSON
 
-Default visualization style is FoamTree factory. **Disk Prisma** must remain available as an Appearance preset.
+Default visualization style is FoamTree factory. **Disk Prisma** remains an Appearance preset.
+
+## Analysis
+
+Analysis occupies the main stage (not a tiny overlay). Charts are folder-scoped:
+
+- Age and subprogram (bubble / scatter)
+- Line chart by subprogram / time / file count
+
+Provide clear empty states when taxonomy or dates are missing.
+
+## Preview
+
+Preview sits as a side panel. Supported kinds (`previewKind`):
+
+- `pdf` — PDF.js stage
+- `ifc` — web-ifc + Three.js stage
+- `image` / `video` / `audio` / `text` — media stage
+
+Selecting a previewable file may auto-open Preview and close Settings when appropriate.
 
 ## Details
 
-Selected files show useful metadata (name, path, size, type, modified, age).
-
-Selected folders / groups show aggregated statistics (files, total size).
+Selected files show useful metadata. Selected folders / groups show aggregated statistics (also reflected in Overview).
 
 ## Breadcrumbs
 
-Always make current hierarchy understandable.
-
-Use Disk Prisma crumb style: `⌂ all files` with `›` separators and current accent.
+Always make current hierarchy understandable (`⌂ all files` with `›` separators).
 
 ## Keyboard
-
-Recommended:
 
 ```text
 Ctrl+O       Open Folder
 Ctrl+Shift+O Open JSON
-Ctrl+F       Search
+Ctrl+F       Search (ensure sidebar visible, focus Search section)
 Ctrl+K       Command Palette
-Esc          Clear/close / navigate up
+Ctrl+R       Rescan / Open Folder
+Esc          Close overlays → clear selection → navigate up
 Backspace    Back
-Enter        Open
+Enter        Open selected
 ```
 
 ## Accessibility
 
-Support:
-
-- keyboard navigation
-- visible focus
-- readable contrast
-- reduced motion
-- semantic controls
+Keyboard navigation, visible focus, readable contrast, reduced motion, semantic controls.

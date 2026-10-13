@@ -9,16 +9,22 @@ Recommended separation:
 ```text
 scanner/
 data/
-metadata/
+metadata/          classification, ACC taxonomy
+sharepoint/        auth, Graph, drive import
 visualization/
-  foamtree/     FoamTree adapter, options, settings schema, style presets
+  foamtree/        FoamTree adapter, options, settings schema, style presets, host
 filtering/
 search/
 ui/
+  layout/          Sidebar rail, Analysis, Preview (PDF/IFC/media), Toolbar, StatusBar
+  dialogs/         Settings, command palette, SharePoint browser, scan progress
+  visualization/   FoamCanvas, VizStage, breadcrumbs
 config/
 state/
-utils/
+utils/             previewKind, pdf, ifc, ACC / web links
 ```
+
+Root Vite helper: `vite.foamtree-branding.ts` (strips demo attribution; keep FoamTree excluded from `optimizeDeps` prebundle).
 
 ## Responsibilities
 
@@ -28,7 +34,7 @@ Filesystem traversal and metadata extraction only.
 
 ### Data
 
-Schema, normalization, indexing, aggregation, serialization/deserialization.
+Schema, normalization, indexing, aggregation, serialization/deserialization, merge of batches.
 
 ### Visualization
 
@@ -40,21 +46,22 @@ Rendering of cells is FoamTree’s job. Prisma only:
 - maps config → FoamTree options
 - hosts the FoamTree instance in the UI
 
-### Filtering
+### Filtering / Search
 
-Pure filter definitions and filter execution.
-
-### Search
-
-Search indexing, parsing, fuzzy matching, query evaluation.
+Pure filter definitions and execution; search indexing, parsing, fuzzy matching.
 
 ### UI
 
-Shell, top bar, crumb bar, left sidebar cards, FoamTree stage, settings panel, dialogs.
+Shell, top bar, crumb bar, **sidebar rail + exclusive section panels**, FoamTree / Analysis stage, Preview and Settings side panels, dialogs.
+
+### Preview / Analysis
+
+- Preview stages live under `ui/layout` (`PdfStage`, `IfcStage`, `MediaStage`) and are selected via `utils/previewKind`.
+- Analysis charts (`AnalysisBubbleChart`, `AnalysisLineChart`) operate on the focused viz scope, not a second index.
 
 ### Config
 
-Application defaults, analysis presets, FoamTree style presets, saved workspace state.
+Application defaults, analysis presets, FoamTree style presets, saved workspace state, SharePoint settings.
 
 ## Dependency Direction
 
@@ -63,9 +70,10 @@ Prefer:
 ```text
 UI -> application state/services -> domain/data
 Visualization/foamtree -> domain/data + typed VisualizationConfig
+Preview utils -> selected FileNode + File System Access / blob URLs
 Scanner -> filesystem + metadata providers
-Search -> normalized data
-Filtering -> normalized data
+SharePoint -> Graph + data index builders
+Search / Filtering -> normalized data
 ```
 
 Avoid circular dependencies.
@@ -83,7 +91,7 @@ Use interfaces for replaceable systems:
 - `SizeMapper`
 - `GroupingStrategy`
 
-FoamTree itself is the layout/renderer. Keep a thin adapter rather than a second custom layout engine for the main view.
+FoamTree itself is the layout/renderer. Keep a thin adapter rather than a second custom layout engine for the main view. Alternate renderers (circle packing / sunburst) may exist behind `visualization.renderer` but FoamTree remains the primary product path.
 
 ## Configuration
 
@@ -93,7 +101,7 @@ Use typed configuration objects and centralized defaults (`foamtreeDefaultStyle`
 
 ## Extensibility
 
-New file types, metadata providers, grouping strategies, color mappings, and FoamTree style presets should be addable without modifying unrelated subsystems.
+New file types, metadata providers, grouping strategies, color mappings, preview kinds, and FoamTree style presets should be addable without modifying unrelated subsystems.
 
 ## Reference Assets
 

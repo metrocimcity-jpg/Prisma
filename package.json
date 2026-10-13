@@ -1,7 +1,7 @@
 {
   "name": "prisma",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "Prisma — visual filesystem analytics explorer powered by Carrot Search FoamTree",
   "scripts": {

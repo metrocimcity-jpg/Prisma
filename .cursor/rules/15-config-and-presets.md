@@ -106,8 +106,14 @@ Workspace may contain:
 - sizing
 - theme
 - visualization tuning
-- panel state
+- panel state (including Analysis / Preview / Settings openness where persisted)
 - selected item
 - focus path
 
 Do not store huge raw file metadata redundantly inside workspace files.
+
+## ACC / SharePoint (product config, not FoamTree)
+
+- ACC taxonomy group-by options appear when the loaded index exposes ACC fields (`indexShowsAccTaxonomy`).
+- SharePoint settings are stored separately (`sharepoint/settings`) and drive the browse dialog; they are not FoamTree style options.
+- Analysis charts may depend on ACC subprogram / modified-date fields; empty states must explain missing taxonomy.

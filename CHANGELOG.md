@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0
+
+- Analysis panel: folder-scoped bubble (age / subprogram / size) and line charts.
+- Preview panel: PDF (`pdfjs-dist`), IFC (`web-ifc` + Three.js), and media/text stages for selected files.
+- Left sidebar rail shows **one panel per icon** (Search+Filters, View, Overview, File Identity); More menu closes after a submenu choice.
+- Merge folder / Merge JSON for multi-batch indexes; SharePoint browse + ACC link resolve / ACC taxonomy group-by labels.
+- Vite transform strips FoamTree demo attribution watermark (`vite.foamtree-branding.ts`).
+- Explorer sidebar chrome restyle into a single signature panel.
+
 ## 0.3.0
 
 - Default FoamTree look matches the official factory / [settings demo](https://get.carrotsearch.com/foamtree/latest/demos/settings.html) (rainbow, gradients, hierarchical stacking).
