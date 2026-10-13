@@ -1,5 +1,6 @@
 import { builtinPresets } from "@/config/presets";
 import { actions, usePrisma } from "@/state/store";
+import { useRef } from "react";
 
 function FolderIcon(): JSX.Element {
   return (
@@ -21,6 +22,12 @@ function LayersIcon(): JSX.Element {
 
 export function Toolbar(): JSX.Element {
   const { config, panels } = usePrisma();
+  const moreRef = useRef<HTMLDetailsElement>(null);
+
+  function runMore(action: () => void): void {
+    moreRef.current?.removeAttribute("open");
+    action();
+  }
 
   return (
     <header className="topbar">
@@ -74,47 +81,50 @@ export function Toolbar(): JSX.Element {
         >
           Settings
         </button>
-        <details className="more-menu">
+        <details className="more-menu" ref={moreRef}>
           <summary>
             <span>More</span>
           </summary>
           <div className="more-pop">
-            <button type="button" onClick={() => void actions.openJson()}>
+            <button type="button" onClick={() => runMore(() => void actions.openJson())}>
               Open JSON
             </button>
-            <button type="button" onClick={() => void actions.mergeJson()}>
+            <button type="button" onClick={() => runMore(() => void actions.mergeJson())}>
               Merge JSON
             </button>
-            <button type="button" onClick={() => void actions.mergeFolder()}>
+            <button type="button" onClick={() => runMore(() => void actions.mergeFolder())}>
               Merge folder
             </button>
-            <button type="button" onClick={() => actions.setPanel("sharePointBrowser", true)}>
+            <button type="button" onClick={() => runMore(() => actions.setPanel("sharePointBrowser", true))}>
               Browse SharePoint
             </button>
-            <button type="button" onClick={() => void actions.resolveAccLinks()}>
+            <button type="button" onClick={() => runMore(() => void actions.resolveAccLinks())}>
               Resolve ACC links
             </button>
-            <button type="button" onClick={() => actions.exportJson()}>
+            <button type="button" onClick={() => runMore(() => actions.exportJson())}>
               Export JSON
             </button>
-            <button type="button" onClick={() => actions.exportCsv()}>
+            <button type="button" onClick={() => runMore(() => actions.exportCsv())}>
               Export CSV
             </button>
-            <button type="button" onClick={() => actions.exportWorkspace()}>
+            <button type="button" onClick={() => runMore(() => actions.exportWorkspace())}>
               Save workspace
             </button>
             {builtinPresets.map((preset) => (
-              <button key={preset.id} type="button" onClick={() => actions.applyPreset(preset)}>
+              <button key={preset.id} type="button" onClick={() => runMore(() => actions.applyPreset(preset))}>
                 {preset.name}
               </button>
             ))}
-            <button type="button" onClick={() => actions.setTheme(config.theme === "dark" ? "light" : "dark")}>
+            <button
+              type="button"
+              onClick={() => runMore(() => actions.setTheme(config.theme === "dark" ? "light" : "dark"))}
+            >
               {config.theme === "dark" ? "Light theme" : "Dark theme"}
             </button>
-            <button type="button" onClick={() => actions.togglePanel("filters")}>
+            <button type="button" onClick={() => runMore(() => actions.togglePanel("filters"))}>
               Toggle sidebar
             </button>
-            <button type="button" onClick={() => actions.setPanel("commandPalette", true)}>
+            <button type="button" onClick={() => runMore(() => actions.setPanel("commandPalette", true))}>
               Commands
             </button>
           </div>
