@@ -1,9 +1,10 @@
 import { fileURLToPath, URL } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
+import { stripFoamTreeBranding } from "./vite.foamtree-branding";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), stripFoamTreeBranding()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -13,7 +14,8 @@ export default defineConfig({
     format: "es",
   },
   optimizeDeps: {
-    exclude: ["web-ifc"],
+    // Keep FoamTree out of the prebundle so the branding strip transform applies.
+    exclude: ["web-ifc", "@carrotsearch/foamtree"],
   },
   assetsInclude: ["**/*.wasm"],
   test: {
