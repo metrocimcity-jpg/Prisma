@@ -1,26 +1,11 @@
 import { actions, usePrisma } from "@/state/store";
-import { colorForExt } from "@/visualization/palettes";
-import { useEffect, useState } from "react";
+import { colorForExt, knownExtensions } from "@/visualization/palettes";
 
 export function FilterPanel(): JSX.Element {
-  const { filters, index, search } = usePrisma();
-  const [searchDraft, setSearchDraft] = useState(search);
+  const { filters, index } = usePrisma();
   const files = index?.items.filter((item) => item.nodeType === "file") ?? [];
 
-  useEffect(() => {
-    setSearchDraft(search);
-  }, [search]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      if (searchDraft !== search) {
-        actions.setSearch(searchDraft);
-      }
-    }, 160);
-    return () => window.clearTimeout(timer);
-  }, [searchDraft, search]);
-
-  const extUniverse = Object.entries(
+  const counted = Object.entries(
     files.reduce<Record<string, number>>((acc, file) => {
       const ext = file.extension ?? "no extension";
       acc[ext] = (acc[ext] ?? 0) + 1;
@@ -29,6 +14,7 @@ export function FilterPanel(): JSX.Element {
   )
     .map(([ext, count]) => ({ ext, count }))
     .sort((a, b) => b.count - a.count);
+  const extUniverse = counted.length > 0 ? counted : knownExtensions().map((ext) => ({ ext, count: 0 }));
 
   const toggleExt = (ext: string): void => {
     const current = filters.extensions;
@@ -37,22 +23,8 @@ export function FilterPanel(): JSX.Element {
   };
 
   return (
-    <div className="card">
-      <h3>Search</h3>
-      <div className="search-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="11" cy="11" r="7" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        <input
-          className="search"
-          value={searchDraft}
-          placeholder="filename or path contains…"
-          onChange={(event) => setSearchDraft(event.target.value)}
-          aria-label="Search"
-        />
-      </div>
-
+    <div className="card" id="sidebar-section-filters">
+      <h3>Filters</h3>
       <label className="field-label">File type</label>
       <div className="chips">
         {extUniverse.map((entry) => (

@@ -137,6 +137,10 @@ const EXT_CATEGORY: Record<string, number> = {
   skp: 7,
 };
 
+export function knownExtensions(): string[] {
+  return Object.keys(EXT_CATEGORY).sort();
+}
+
 export function colorForExt(ext: string | null | undefined): string {
   if (ext === null || ext === undefined || ext.length === 0 || ext === "(none)" || ext === "no extension") {
     return "#5c6376";

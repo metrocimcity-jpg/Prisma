@@ -15,7 +15,6 @@ export const HIERARCHY_FIELDS: HierarchyField[] = [
   { id: "size", label: "File size" },
   { id: "date", label: "Date modified" },
   { id: "subcategory", label: "Subcategory" },
-  { id: "mimeType", label: "MIME type" },
   { id: "accDiscipline", label: "Discipline" },
   { id: "accDocumentType", label: "Document type" },
   { id: "accPortfolio", label: "Portfolio" },

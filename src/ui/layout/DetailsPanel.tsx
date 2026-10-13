@@ -69,7 +69,7 @@ export function DetailsPanel(): JSX.Element {
   return (
     <div className="card">
       <h3>
-        Selection
+        File Identity
         <button className="reset-link" type="button" onClick={() => actions.select(null)}>
           clear
         </button>

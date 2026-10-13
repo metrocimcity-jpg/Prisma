@@ -1,4 +1,5 @@
 import { actions, usePrisma } from "@/state/store";
+import { focusSidebarSearch } from "@/ui/layout/sidebarSearch";
 import { resetFoamTreeView } from "@/visualization/foamtree/host";
 import { useEffect } from "react";
 
@@ -25,8 +26,10 @@ export function useKeyboard(): void {
       }
       if (meta && event.key.toLowerCase() === "f") {
         event.preventDefault();
-        const search = document.querySelector<HTMLInputElement>(".search-wrap input, input.search");
-        search?.focus();
+        if (!panels.filters) {
+          actions.togglePanel("filters");
+        }
+        focusSidebarSearch();
         return;
       }
       if (meta && event.key.toLowerCase() === "r") {

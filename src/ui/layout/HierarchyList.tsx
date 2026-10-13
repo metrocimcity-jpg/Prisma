@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+
 import type { GroupLevel } from "@/visualization/types";
 import {
   ensureCatalog,
@@ -58,8 +59,7 @@ export function HierarchyList({ metadataKeys, groupBy, onChange }: HierarchyList
 
   return (
     <div className="hierarchy">
-      <p className="hierarchy-hint">Drag to order. Checked fields group the map from top to bottom.</p>
-      <ul className="hierarchy-list" id="hierarchy" aria-label="Grouping hierarchy">
+      <ul className="hierarchy-list" id="hierarchy" aria-label="Multi-Level Hierarchy">
         {order.map((id) => {
           const checked = active.has(id);
           if (checked) {

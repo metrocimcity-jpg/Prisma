@@ -11,6 +11,51 @@ import { HierarchyList } from "@/ui/layout/HierarchyList";
 import { hierarchyCatalog } from "@/ui/layout/hierarchy";
 import type { ColorBy, GroupBy, GroupLevel, LayoutMode } from "@/visualization/types";
 import { indexShowsAccTaxonomy } from "@/metadata/accTaxonomy";
+import { consumeSidebarSearchFocus } from "@/ui/layout/sidebarSearch";
+import { useEffect, useRef, useState } from "react";
+
+type SidebarSection = "search" | "view" | "overview" | "selection";
+
+function searchShortcutLabel(): string {
+  const mac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent);
+  return mac ? "⌘F" : "Ctrl F";
+}
+
+function SearchIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="6" />
+      <path d="m16 16 4 4" />
+    </svg>
+  );
+}
+
+function ViewIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+      <circle cx="15" cy="7" r="2" />
+      <circle cx="9" cy="17" r="2" />
+    </svg>
+  );
+}
+
+function OverviewIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 19v-5M12 19V9M19 19V4" />
+    </svg>
+  );
+}
+
+function SelectionIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+      <path d="M14 3v5h5" />
+    </svg>
+  );
+}
 
 const ACC_GROUP_BY = new Set<string>([
   "accPortfolio",
@@ -65,7 +110,53 @@ function formatPropertyLabel(key: string): string {
 
 export function Sidebar(): JSX.Element {
   const { config, index, vizTree, focusPath, selectedId, search, filters } = usePrisma();
+  const [collapsed, setCollapsed] = useState(false);
+  const [active, setActive] = useState<SidebarSection>("search");
+  const [searchDraft, setSearchDraft] = useState(search);
+  const searchRef = useRef<HTMLInputElement>(null);
   const viz = config.visualization;
+
+  useEffect(() => {
+    setSearchDraft(search);
+  }, [search]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (searchDraft !== search) {
+        actions.setSearch(searchDraft);
+      }
+    }, 160);
+    return () => window.clearTimeout(timer);
+  }, [searchDraft, search]);
+
+  useEffect(() => {
+    const onFocusSearch = (): void => {
+      consumeSidebarSearchFocus();
+      setActive("search");
+      setCollapsed(false);
+      window.setTimeout(() => searchRef.current?.focus(), collapsed ? 400 : 0);
+    };
+    window.addEventListener("prisma-focus-search", onFocusSearch);
+    if (consumeSidebarSearchFocus()) {
+      setActive("search");
+      setCollapsed(false);
+      window.setTimeout(() => searchRef.current?.focus(), collapsed ? 400 : 0);
+    }
+    return () => window.removeEventListener("prisma-focus-search", onFocusSearch);
+  }, [collapsed]);
+
+  function reveal(section: SidebarSection): void {
+    setActive(section);
+    const wasCollapsed = collapsed;
+    setCollapsed(false);
+    window.setTimeout(() => {
+      if (section === "search") {
+        searchRef.current?.focus();
+        return;
+      }
+      document.getElementById(`sidebar-section-${section}`)?.scrollIntoView({ block: "start" });
+    }, wasCollapsed ? 400 : 0);
+  }
   const matching = search.trim().length > 0 || isFilterActive(filters);
   const metadataKeys = collectMetadataKeys(index);
   const showAccGroups = indexShowsAccTaxonomy(index);
@@ -80,12 +171,59 @@ export function Sidebar(): JSX.Element {
   const scopeSize = scope?.totalSize ?? 0;
   const stacking = viz.style.stacking;
 
+  const rail = [
+    { id: "search" as const, label: "Search", icon: <SearchIcon /> },
+    { id: "view" as const, label: "File Explorer view", icon: <ViewIcon /> },
+    { id: "overview" as const, label: "Overview", icon: <OverviewIcon /> },
+    { id: "selection" as const, label: "File Identity", icon: <SelectionIcon /> },
+  ];
+
   return (
-    <aside className="sidebar" aria-label="Explorer controls">
+    <aside className={collapsed ? "sidebar collapsed" : "sidebar expanded"} aria-label="Explorer controls">
+      <button
+        className="sidebar-toggle"
+        type="button"
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-expanded={!collapsed}
+        onClick={() => setCollapsed((current) => !current)}
+      >
+        {collapsed ? "›" : "‹"}
+      </button>
+
+      <div className="sidebar-search search-wrap">
+        <SearchIcon />
+        <input
+          ref={searchRef}
+          className="search"
+          value={searchDraft}
+          placeholder="Search"
+          onChange={(event) => setSearchDraft(event.target.value)}
+          aria-label="Search"
+        />
+        <kbd>{searchShortcutLabel()}</kbd>
+      </div>
+
+      <nav className="sidebar-rail" aria-label="Sidebar sections">
+        {rail.map((item) => (
+          <button
+            key={item.id}
+            className={active === item.id ? "nav-btn active" : "nav-btn"}
+            type="button"
+            aria-label={item.label}
+            onClick={() => reveal(item.id)}
+          >
+            {active === item.id ? <span className="active-rail" /> : null}
+            {item.icon}
+            <span className="tooltip">{item.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      <div className="sidebar-scroll">
       <FilterPanel />
 
-      <div className="card">
-        <h3>View</h3>
+      <div className="card" id="sidebar-section-view">
+        <h3>File Explorer view</h3>
         <label className="field-label" htmlFor="group-by">
           Group by
         </label>
@@ -140,7 +278,7 @@ export function Sidebar(): JSX.Element {
         </select>
 
         <label className="field-label" htmlFor="hierarchy">
-          Hierarchy
+          Multi-Level Hierarchy
         </label>
         <HierarchyList
           metadataKeys={metadataKeys}
@@ -225,13 +363,15 @@ export function Sidebar(): JSX.Element {
         </select>
       </div>
 
-      <div className="card">
+      <div className="card" id="sidebar-section-overview">
         <h3>Overview</h3>
         {index && scope ? (
           <>
-            <div className="detail-title" title={scopeLabel}>
-              {scopeLabel}
-            </div>
+            {!atRoot && scopeLabel ? (
+              <div className="detail-title" title={scopeLabel}>
+                {scopeLabel}
+              </div>
+            ) : null}
             <div className="stat-line">
               <span className="k">Files</span>
               <span className="v">{formatNumber(scope.fileCount)}</span>
@@ -276,7 +416,10 @@ export function Sidebar(): JSX.Element {
         )}
       </div>
 
-      <DetailsPanel />
+      <div id="sidebar-section-selection">
+        <DetailsPanel />
+      </div>
+      </div>
     </aside>
   );
 }
