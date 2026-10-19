@@ -1,5 +1,5 @@
 import type { FileIndex, IndexNode } from "@/data/types";
-import { ACC_METADATA_KEYS, presentAccValue } from "@/metadata/accTaxonomy";
+import { ACC_METADATA_KEYS, accMetadataRaw, presentAccValue } from "@/metadata/accTaxonomy";
 import type { GroupBy, GroupLevel, SizeBy, VizNode } from "./types";
 import { defaultSizeMapper } from "./SizeMapper";
 
@@ -33,10 +33,8 @@ function groupKey(node: IndexNode, key: GroupLevel, customProperty: string): str
   }
   const accKey = ACC_GROUP_KEYS[key as GroupBy];
   if (accKey) {
-    const value = node.metadata?.[accKey];
-    return value === undefined || value === null || String(value).trim().length === 0
-      ? "(none)"
-      : presentAccValue(accKey, String(value));
+    const value = accMetadataRaw(node.metadata, accKey);
+    return value === null ? "(none)" : presentAccValue(accKey, value);
   }
   switch (key) {
     case "extension":

@@ -1230,6 +1230,27 @@ input.search {
   padding: 20px;
 }
 
+.empty-logo-frame {
+  position: relative;
+  line-height: 0;
+  background: transparent;
+}
+
+.empty-logo-source {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.empty-logo {
+  width: min(280px, 60vw);
+  height: auto;
+  background: transparent;
+  pointer-events: none;
+}
+
 .empty-state svg,
 .empty svg {
   width: 52px;
@@ -1339,6 +1360,15 @@ input.search {
   padding: 12px 16px;
   display: grid;
   gap: 12px;
+}
+
+.scan-logo {
+  width: min(100%, 520px);
+  max-height: 280px;
+  justify-self: center;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #000;
 }
 
 .command-item {

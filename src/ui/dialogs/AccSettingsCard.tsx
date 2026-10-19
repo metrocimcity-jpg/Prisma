@@ -15,9 +15,9 @@ export function AccSettingsCard(): JSX.Element {
     <div className="card acc-settings-card">
       <h3>Autodesk Construction Cloud</h3>
       <p className="detail-hint">
-        Prisma builds real Docs links like{" "}
-        <code>https://acc.autodesk.com/docs/files/projects/…?entityId=…</code> by signing into Autodesk and matching
-        your loaded folder paths to ACC. Create a free APS app, enable PKCE, and add this callback URL:{" "}
+        Prisma matches loaded files to ACC, saves each file’s data sheet on this computer, and adds those fields to
+        Group by. Later sessions can sort by those fields without signing in again. Create a
+        free APS app and add this callback URL:{" "}
         <code>
           {typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}` : "http://127.0.0.1:4173/"}
         </code>
@@ -31,6 +31,18 @@ export function AccSettingsCard(): JSX.Element {
         value={draft.clientId}
         placeholder="Your Autodesk Platform Services app client id"
         onChange={(event) => setDraft({ ...draft, clientId: event.target.value })}
+      />
+
+      <label className="field-label" htmlFor="aps-client-secret">
+        APS Client Secret
+      </label>
+      <input
+        id="aps-client-secret"
+        type="password"
+        autoComplete="off"
+        value={draft.clientSecret}
+        placeholder="Required for a Traditional Web App. Leave blank for PKCE."
+        onChange={(event) => setDraft({ ...draft, clientSecret: event.target.value })}
       />
 
       <label className="field-label" htmlFor="acc-project-id">
@@ -79,12 +91,18 @@ export function AccSettingsCard(): JSX.Element {
             Sign out
           </button>
         ) : (
-          <button type="button" onClick={() => void actions.signInAcc()}>
+          <button
+            type="button"
+            onClick={() => {
+              actions.saveAccSettings(draft);
+              void actions.signInAcc();
+            }}
+          >
             Sign in to ACC
           </button>
         )}
         <button type="button" disabled={acc.resolving} onClick={() => void actions.resolveAccLinks()}>
-          {acc.resolving ? "Resolving…" : "Resolve ACC links"}
+          {acc.resolving ? "Reading ACC…" : "Resolve ACC links"}
         </button>
       </div>
       <div className="stat-line">

@@ -1,0 +1,810 @@
+{
+  "attributes": [
+    "Created By",
+    "Modified",
+    "Modified By",
+    "Title",
+    "Version",
+    "Version 1 size",
+    "Version 2 size",
+    "Version sizes"
+  ],
+  "files": [
+    {
+      "path": "FG_ARW05_DD.xml",
+      "name": "FG_ARW05_DD.xml",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 165637862,
+          "size": "158 MB"
+        }
+      ],
+      "metadata": {
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3Aa_-pqQpISa6m2BXjhNGIEg&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:a_-pqQpISa6m2BXjhNGIEg",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-06-17T17:48:46.0000000Z",
+        "Title": "FG_ARW05_DD.xml",
+        "Version 1 size": "158 MB",
+        "Version sizes": "1: 158 MB"
+      }
+    },
+    {
+      "path": "GTA_05-23-TESTING.ifc",
+      "name": "GTA_05-23-TESTING.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 84095191,
+          "size": "80 MB"
+        },
+        {
+          "version": 2,
+          "bytes": 84097634,
+          "size": "80 MB"
+        }
+      ],
+      "metadata": {
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3A1hGT4mvmTiivdM-7MsZLgA&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:1hGT4mvmTiivdM-7MsZLgA",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "2",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-03T21:58:36.0000000Z",
+        "Title": "GTA_05-23-TESTING.ifc",
+        "Version 1 size": "80 MB",
+        "Version 2 size": "80 MB",
+        "Version sizes": "1: 80 MB, 2: 80 MB"
+      }
+    },
+    {
+      "path": "GTAA_LIGHTS_NAVCAN_V81.rvt",
+      "name": "GTAA_LIGHTS_NAVCAN_V81.rvt",
+      "versions": [
+        {
+          "version": 2,
+          "bytes": 60391424,
+          "size": "58 MB"
+        }
+      ],
+      "metadata": {
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AjuI08PxOQpqAb5VteU37Lg&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:juI08PxOQpqAb5VteU37Lg",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "2",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-30T16:09:30.0000000Z",
+        "Title": "GTAA_LIGHTS_NAVCAN_V81.rvt",
+        "Version 2 size": "58 MB",
+        "Version sizes": "2: 58 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-ARW05-AES1-M3D-10015_AZ_IFC4x3.ifc",
+      "name": "L-AC-AE-PD-ARW05-AES1-M3D-10015_AZ_IFC4x3.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 530503509,
+          "size": "506 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "RUNWAY 05-23",
+        "ACC-Discipline": "Airfield Electrical Systems — Airfield Ground Lighting",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AQA2nbno8QV-lS4BL1uHBIA&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:QA2nbno8QV-lS4BL1uHBIA",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-20T04:24:45.0000000Z",
+        "Title": "L-AC-AE-PD-ARW05-AES1-M3D-10015_AZ_IFC4x3.ifc",
+        "Version 1 size": "506 MB",
+        "Version sizes": "1: 506 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-ARW05-APE0-M3D-10015_3DSOLIDS-1.ifc",
+      "name": "L-AC-AE-PD-ARW05-APE0-M3D-10015_3DSOLIDS-1.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 84083069,
+          "size": "80 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "RUNWAY 05-23",
+        "ACC-Discipline": "Airfield Pavement Engineering",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AVkkfL1ceQFC1ktbBTK3vbQ&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:VkkfL1ceQFC1ktbBTK3vbQ",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-20T12:15:28.0000000Z",
+        "Title": "L-AC-AE-PD-ARW05-APE0-M3D-10015_3DSOLIDS-1.ifc",
+        "Version 1 size": "80 MB",
+        "Version sizes": "1: 80 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-ARW05-APE0-M3D-10315.ifc",
+      "name": "L-AC-AE-PD-ARW05-APE0-M3D-10315.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 157242842,
+          "size": "150 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "RUNWAY 05-23",
+        "ACC-Discipline": "Airfield Pavement Engineering",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3A-1Nl6AZlSViNkkP49cohGA&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:-1Nl6AZlSViNkkP49cohGA",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-21T20:36:40.0000000Z",
+        "Title": "L-AC-AE-PD-ARW05-APE0-M3D-10315.ifc",
+        "Version 1 size": "150 MB",
+        "Version sizes": "1: 150 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-F0327-ARC0-M3D-20003_IFC4_testx3",
+      "name": "L-AC-AE-PD-F0327-ARC0-M3D-20003_IFC4_testx3",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 0,
+          "size": "0 B"
+        },
+        {
+          "version": 2,
+          "bytes": 0,
+          "size": "0 B"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "FEC B",
+        "ACC-Discipline": "Architectural",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AaP7L3qciQD-Y8hpB0y1bRQ&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:aP7L3qciQD-Y8hpB0y1bRQ",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "2",
+        "Created By": "Dakksh NAGPAL",
+        "Modified By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified": "2026-07-15T20:48:09.0000000Z",
+        "Title": "L-AC-AE-PD-F0327-ARC0-M3D-20003_IFC4_testx3",
+        "Version 1 size": "0 B",
+        "Version 2 size": "0 B",
+        "Version sizes": "1: 0 B, 2: 0 B"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-F0327-ARC0-M3D-20003_IFC4x3.ifc",
+      "name": "L-AC-AE-PD-F0327-ARC0-M3D-20003_IFC4x3.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 26664574,
+          "size": "25 MB"
+        },
+        {
+          "version": 2,
+          "bytes": 4440525,
+          "size": "4.2 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "FEC B",
+        "ACC-Discipline": "Architectural",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AE_EOpsPESkWVJIM54hcE2Q&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:E_EOpsPESkWVJIM54hcE2Q",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "2",
+        "Created By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified": "2026-07-15T20:45:44.0000000Z",
+        "Title": "L-AC-AE-PD-F0327-ARC0-M3D-20003_IFC4x3.ifc",
+        "Version 1 size": "25 MB",
+        "Version 2 size": "4.2 MB",
+        "Version sizes": "1: 25 MB, 2: 4.2 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-F0327-BST0-M3D-20003_IFC4x3.ifc",
+      "name": "L-AC-AE-PD-F0327-BST0-M3D-20003_IFC4x3.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 2604846,
+          "size": "2.5 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "FEC B",
+        "ACC-Discipline": "Building Structures and Framing",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3ALo_-GDxkQHWXhDEotz0raQ&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:Lo_-GDxkQHWXhDEotz0raQ",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified": "2026-07-23T01:55:01.0000000Z",
+        "Title": "L-AC-AE-PD-F0327-BST0-M3D-20003_IFC4x3.ifc",
+        "Version 1 size": "2.5 MB",
+        "Version sizes": "1: 2.5 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-F0327-ELE0-M3D-20003_IFC_backup_IFC4x3.ifc",
+      "name": "L-AC-AE-PD-F0327-ELE0-M3D-20003_IFC_backup_IFC4x3.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 230528627,
+          "size": "220 MB"
+        },
+        {
+          "version": 2,
+          "bytes": 230528627,
+          "size": "220 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "FEC B",
+        "ACC-Discipline": "Electrical and Emergency Power",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AiM9LeWaRScW4hRjCuj6rEw&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:iM9LeWaRScW4hRjCuj6rEw",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "2",
+        "Created By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified": "2026-07-15T20:29:09.0000000Z",
+        "Title": "L-AC-AE-PD-F0327-ELE0-M3D-20003_IFC_backup_IFC4x3.ifc",
+        "Version 1 size": "220 MB",
+        "Version 2 size": "220 MB",
+        "Version sizes": "1: 220 MB, 2: 220 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-F0327-ELE0-M3D-20503.ifc",
+      "name": "L-AC-AE-PD-F0327-ELE0-M3D-20503.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 35578483,
+          "size": "34 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "FEC B",
+        "ACC-Discipline": "Electrical and Emergency Power",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AZg5pZjGdQsm89QKV-NP_Cw&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:Zg5pZjGdQsm89QKV-NP_Cw",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified": "2026-07-15T20:55:15.0000000Z",
+        "Title": "L-AC-AE-PD-F0327-ELE0-M3D-20503.ifc",
+        "Version 1 size": "34 MB",
+        "Version sizes": "1: 34 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-F0327-HVC0-M3D-20003-IFC_IFC4x3.ifc",
+      "name": "L-AC-AE-PD-F0327-HVC0-M3D-20003-IFC_IFC4x3.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 127053577,
+          "size": "121 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "FEC B",
+        "ACC-Discipline": "Heat Ventillation and Air Conditioning including Thermal Systems",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AqU4s6favQP60ZiU2yu6YHg&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:qU4s6favQP60ZiU2yu6YHg",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified": "2026-07-15T15:03:16.0000000Z",
+        "Title": "L-AC-AE-PD-F0327-HVC0-M3D-20003-IFC_IFC4x3.ifc",
+        "Version 1 size": "121 MB",
+        "Version sizes": "1: 121 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-F0327-HVC0-M3D-20003.ifc",
+      "name": "L-AC-AE-PD-F0327-HVC0-M3D-20003.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 19123931,
+          "size": "18 MB"
+        },
+        {
+          "version": 2,
+          "bytes": 28014588,
+          "size": "27 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "FEC B",
+        "ACC-Discipline": "Heat Ventillation and Air Conditioning including Thermal Systems",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AF7O8VZfDTN6o4zmARCgo_A&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:F7O8VZfDTN6o4zmARCgo_A",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "2",
+        "Created By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified By": "Golnaz VAKILI SOHROFIROUZANI",
+        "Modified": "2026-07-16T18:26:02.0000000Z",
+        "Title": "L-AC-AE-PD-F0327-HVC0-M3D-20003.ifc",
+        "Version 1 size": "18 MB",
+        "Version 2 size": "27 MB",
+        "Version sizes": "1: 18 MB, 2: 27 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_AGL_V83.rvt",
+      "name": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_AGL_V83.rvt",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 1161437184,
+          "size": "1.1 GB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "AIRPORT WIDE - GENERAL",
+        "ACC-Discipline": "Airfield Electrical Systems",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3Afm0aaPEdRpSDCuzlgqaW-g&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:fm0aaPEdRpSDCuzlgqaW-g",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-31T14:26:40.0000000Z",
+        "Title": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_AGL_V83.rvt",
+        "Version 1 size": "1.1 GB",
+        "Version sizes": "1: 1.1 GB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_SIGNS_V23.rvt",
+      "name": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_SIGNS_V23.rvt",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 1329565696,
+          "size": "1.2 GB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "AIRPORT WIDE - GENERAL",
+        "ACC-Discipline": "Airfield Electrical Systems",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AUSkdDHewRMC6P1jfevv75Q&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:USkdDHewRMC6P1jfevv75Q",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-08-04T19:37:05.0000000Z",
+        "Title": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_SIGNS_V23.rvt",
+        "Version 1 size": "1.2 GB",
+        "Version sizes": "1: 1.2 GB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_SIGNS_V27.rvt",
+      "name": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_SIGNS_V27.rvt",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 1275277312,
+          "size": "1.2 GB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "AIRPORT WIDE - GENERAL",
+        "ACC-Discipline": "Airfield Electrical Systems",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AMjSt1y0IT7mOCt7RpsiaHw&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:MjSt1y0IT7mOCt7RpsiaHw",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-08-13T20:02:18.0000000Z",
+        "Title": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_SIGNS_V27.rvt",
+        "Version 1 size": "1.2 GB",
+        "Version sizes": "1: 1.2 GB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_TEMP_LOD45_F69.rvt",
+      "name": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_TEMP_LOD45_F69.rvt",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 36958208,
+          "size": "35 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "AIRPORT WIDE - GENERAL",
+        "ACC-Discipline": "Airfield Electrical Systems",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3Aik6h2Mq0SuGMeAY9T-mpmQ&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:ik6h2Mq0SuGMeAY9T-mpmQ",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-28T12:14:10.0000000Z",
+        "Title": "L-AC-AE-PD-FAPGN-AES0-M3D-100_TEST_TEMP_LOD45_F69.rvt",
+        "Version 1 size": "35 MB",
+        "Version sizes": "1: 35 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-FAPGN-AES0-M3X-99990_GDB_TOOL_ASSETS.rvt",
+      "name": "L-AC-AE-PD-FAPGN-AES0-M3X-99990_GDB_TOOL_ASSETS.rvt",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 62353408,
+          "size": "59 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "AIRPORT WIDE - GENERAL",
+        "ACC-Discipline": "Airfield Electrical Systems",
+        "ACC-Document Type": "Model 3D - Existing",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3A3FGCCX3zTYakJ_Uk7j03mQ&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:3FGCCX3zTYakJ_Uk7j03mQ",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-27T18:39:52.0000000Z",
+        "Title": "L-AC-AE-PD-FAPGN-AES0-M3X-99990_GDB_TOOL_ASSETS.rvt",
+        "Version 1 size": "59 MB",
+        "Version sizes": "1: 59 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-FAPGN-AES0-M3X-99990_SIGNS_FINAL_ZZZZZ.rvt",
+      "name": "L-AC-AE-PD-FAPGN-AES0-M3X-99990_SIGNS_FINAL_ZZZZZ.rvt",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 477814784,
+          "size": "456 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "AIRPORT WIDE - GENERAL",
+        "ACC-Discipline": "Airfield Electrical Systems",
+        "ACC-Document Type": "Model 3D - Existing",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3A7ZV_u1uySrOdhI9WlUmycg&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:7ZV_u1uySrOdhI9WlUmycg",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-27T18:06:13.0000000Z",
+        "Title": "L-AC-AE-PD-FAPGN-AES0-M3X-99990_SIGNS_FINAL_ZZZZZ.rvt",
+        "Version 1 size": "456 MB",
+        "Version sizes": "1: 456 MB"
+      }
+    },
+    {
+      "path": "L-AC-AE-PD-P90-CIV8-M3D-North Complex-1000mm Raise 23End-GRADING-SOLIDS.dwg",
+      "name": "L-AC-AE-PD-P90-CIV8-M3D-North Complex-1000mm Raise 23End-GRADING-SOLIDS.dwg",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 46033102,
+          "size": "44 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Airfield Electrical & Civil",
+        "ACC-Originator": "PACT",
+        "ACC-Discipline": "Civil and Site Structural — Interface and Coordination",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3Aua7R6DquRi6x0JaGw8WnrA&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:ua7R6DquRi6x0JaGw8WnrA",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Alexander SCHAUERTE",
+        "Modified By": "Alexander SCHAUERTE",
+        "Modified": "2026-06-15T13:34:18.0000000Z",
+        "Title": "L-AC-AE-PD-P90-CIV8-M3D-North Complex-1000mm Raise 23End-GRADING-SOLIDS.dwg",
+        "Version 1 size": "44 MB",
+        "Version sizes": "1: 44 MB"
+      }
+    },
+    {
+      "path": "L-AC-AP-PD-F0148-AES0-M3D-10005_aziz.salmanZG9CU_IFC4x3.ifc",
+      "name": "L-AC-AP-PD-F0148-AES0-M3D-10005_aziz.salmanZG9CU_IFC4x3.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 20829269,
+          "size": "20 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Accelerator Priority Projects",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "0148, T3SAT PIER A [AIR TERMINAL 3 SATELLITE]",
+        "ACC-Discipline": "Airfield Electrical Systems",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3A3dtRfjGkRgSaU5UKWmtTmA&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:3dtRfjGkRgSaU5UKWmtTmA",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-09T18:06:55.0000000Z",
+        "Title": "L-AC-AP-PD-F0148-AES0-M3D-10005_aziz.salmanZG9CU_IFC4x3.ifc",
+        "Version 1 size": "20 MB",
+        "Version sizes": "1: 20 MB"
+      }
+    },
+    {
+      "path": "L-AC-AP-PD-F0148-AES0-M3D-10005.ifc",
+      "name": "L-AC-AP-PD-F0148-AES0-M3D-10005.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 60111913,
+          "size": "57 MB"
+        },
+        {
+          "version": 2,
+          "bytes": 60111917,
+          "size": "57 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Accelerator Priority Projects",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "0148, T3SAT PIER A [AIR TERMINAL 3 SATELLITE]",
+        "ACC-Discipline": "Airfield Electrical Systems",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AeEW1G3mrQDSuJlx-U-V4DQ&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:eEW1G3mrQDSuJlx-U-V4DQ",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "2",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-09T16:38:14.0000000Z",
+        "Title": "L-AC-AP-PD-F0148-AES0-M3D-10005.ifc",
+        "Version 1 size": "57 MB",
+        "Version 2 size": "57 MB",
+        "Version sizes": "1: 57 MB, 2: 57 MB"
+      }
+    },
+    {
+      "path": "L-AC-AP-PD-F0170-HVC0-M3D-10009_aziz.salmanZG9CU_IFC4x3.ifc",
+      "name": "L-AC-AP-PD-F0170-HVC0-M3D-10009_aziz.salmanZG9CU_IFC4x3.ifc",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 28453709,
+          "size": "27 MB"
+        }
+      ],
+      "metadata": {
+        "ACC-Portfolio": "Long Term Investment in Facilities and Terminals",
+        "ACC-Program": "Accelerator",
+        "ACC-Sub Program": "Accelerator Priority Projects",
+        "ACC-Originator": "PACT",
+        "ACC-Location": "0170, VISAPM [AREA/LOT 6A VISCOUNT PEOPLE MOVER]",
+        "ACC-Discipline": "Heat Ventillation and Air Conditioning including Thermal Systems",
+        "ACC-Document Type": "Model - 3D",
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AzmI-rVGfRFeNwaAbqQs89Q&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:zmI-rVGfRFeNwaAbqQs89Q",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-15T10:26:02.0000000Z",
+        "Title": "L-AC-AP-PD-F0170-HVC0-M3D-10009_aziz.salmanZG9CU_IFC4x3.ifc",
+        "Version 1 size": "27 MB",
+        "Version sizes": "1: 27 MB"
+      }
+    },
+    {
+      "path": "PAVEMENT_MARKINGS_JUNE16 - EXTRA_LINES 2 (1).dwg",
+      "name": "PAVEMENT_MARKINGS_JUNE16 - EXTRA_LINES 2 (1).dwg",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 4653445,
+          "size": "4.4 MB"
+        }
+      ],
+      "metadata": {
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AZSd-_gwERwiDwSEaS-aprQ&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:ZSd-_gwERwiDwSEaS-aprQ",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-06-17T17:23:18.0000000Z",
+        "Title": "PAVEMENT_MARKINGS_JUNE16 - EXTRA_LINES 2 (1).dwg",
+        "Version 1 size": "4.4 MB",
+        "Version sizes": "1: 4.4 MB"
+      }
+    },
+    {
+      "path": "PAVEMENT_MARKINGS_JUNE16 - EXTRA_LINES 2.dwg",
+      "name": "PAVEMENT_MARKINGS_JUNE16 - EXTRA_LINES 2.dwg",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 710695205,
+          "size": "678 MB"
+        }
+      ],
+      "metadata": {
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AOJIamYN1RQCK3s9jw5f45Q&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:OJIamYN1RQCK3s9jw5f45Q",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-06-17T17:12:01.0000000Z",
+        "Title": "PAVEMENT_MARKINGS_JUNE16 - EXTRA_LINES 2.dwg",
+        "Version 1 size": "678 MB",
+        "Version sizes": "1: 678 MB"
+      }
+    },
+    {
+      "path": "Project2_FAPGN_SIGNS_V00002.rvt",
+      "name": "Project2_FAPGN_SIGNS_V00002.rvt",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 841338880,
+          "size": "802 MB"
+        }
+      ],
+      "metadata": {
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3A5DxSPE6ER86Ofodb-888_Q&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:5DxSPE6ER86Ofodb-888_Q",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-31T14:30:06.0000000Z",
+        "Title": "Project2_FAPGN_SIGNS_V00002.rvt",
+        "Version 1 size": "802 MB",
+        "Version sizes": "1: 802 MB"
+      }
+    },
+    {
+      "path": "YYZ_Lights_HONEYWELL_ASSETS_GTA_V1_8.2 (2).dxf",
+      "name": "YYZ_Lights_HONEYWELL_ASSETS_GTA_V1_8.2 (2).dxf",
+      "versions": [
+        {
+          "version": 1,
+          "bytes": 432094836,
+          "size": "412 MB"
+        }
+      ],
+      "metadata": {
+        "accUrl": "https://acc.autodesk.com/docs/files/projects/2a6ebc1e-32d9-48d3-9a0e-b55c8d292e8c?folderUrn=urn%3Aadsk.wips7bwc%3Afs.folder%3Aco.YrGGck2MR16eZpHNCNPTTQ&entityId=urn%3Aadsk.wips7bwc%3Adm.lineage%3AD0RpKDR4TBWkz5r09xiSjw&viewModel=detail&moduleId=folders",
+        "entityId": "urn:adsk.wips7bwc:dm.lineage:D0RpKDR4TBWkz5r09xiSjw",
+        "folderUrn": "urn:adsk.wips7bwc:fs.folder:co.YrGGck2MR16eZpHNCNPTTQ",
+        "Version": "1",
+        "Created By": "Aziz SALMAN",
+        "Modified By": "Aziz SALMAN",
+        "Modified": "2026-07-30T17:16:46.0000000Z",
+        "Title": "YYZ_Lights_HONEYWELL_ASSETS_GTA_V1_8.2 (2).dxf",
+        "Version 1 size": "412 MB",
+        "Version sizes": "1: 412 MB"
+      }
+    }
+  ]
+}

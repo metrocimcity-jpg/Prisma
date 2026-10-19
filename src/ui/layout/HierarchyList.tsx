@@ -7,6 +7,7 @@ import {
   hierarchyGroupBy,
   mergeHierarchyOrder,
   moveHierarchyItem,
+  promoteHierarchySelection,
 } from "@/ui/layout/hierarchy";
 
 interface HierarchyListProps {
@@ -35,6 +36,7 @@ export function HierarchyList({ metadataKeys, groupBy, onChange }: HierarchyList
   const [customOrder, setCustomOrder] = useState<string[] | null>(null);
   const [seenGroup, setSeenGroup] = useState(groupKey);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   if (seenGroup !== groupKey) {
     setSeenGroup(groupKey);
@@ -59,7 +61,7 @@ export function HierarchyList({ metadataKeys, groupBy, onChange }: HierarchyList
 
   return (
     <div className="hierarchy">
-      <ul className="hierarchy-list" id="hierarchy" aria-label="Multi-Level Hierarchy">
+      <ul ref={listRef} className="hierarchy-list" id="hierarchy" aria-label="Multi-Level Hierarchy">
         {order.map((id) => {
           const checked = active.has(id);
           if (checked) {
@@ -116,10 +118,14 @@ export function HierarchyList({ metadataKeys, groupBy, onChange }: HierarchyList
                 aria-label={`Include ${labels.get(id as GroupLevel) ?? id} in the hierarchy`}
                 onPointerDown={(event) => event.stopPropagation()}
                 onChange={(event) => {
-                  const nextActive = event.target.checked
-                    ? [...groupBy, id]
+                  const selected = event.target.checked;
+                  const nextActive = selected
+                    ? [id, ...groupBy.filter((level) => level !== id)]
                     : groupBy.filter((level) => level !== id);
-                  publish(order, nextActive);
+                  publish(promoteHierarchySelection(order, id, selected, catalogIds, groupBy), nextActive);
+                  if (selected) {
+                    listRef.current?.scrollTo({ top: 0 });
+                  }
                 }}
               />
             </li>

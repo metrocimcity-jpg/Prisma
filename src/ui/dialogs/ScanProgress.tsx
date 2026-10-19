@@ -14,6 +14,15 @@ export function ScanProgressDialog(): JSX.Element | null {
           <div className="kicker">{scan.currentPath || "Preparing…"}</div>
         </header>
         <div className="panel-body">
+          <video
+            className="scan-logo"
+            src="/prisma-logo.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            aria-label="Prisma logo"
+          />
           <div>
             {formatNumber(scan.filesScanned)} files · {formatNumber(scan.foldersScanned)} folders · {formatBytes(scan.totalSize)}
           </div>

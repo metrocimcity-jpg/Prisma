@@ -20,7 +20,10 @@ import {
 import { mergeFileIndexes } from "@/data/mergeIndex";
 import { downloadText } from "@/utils/format";
 import { beginAccLogin, clearAccToken, completeAccLoginFromUrl, isAccSignedIn } from "@/acc/auth";
-import { resolveAccLinks as enrichIndexWithAccLinks } from "@/acc/resolveLinks";
+import { applySavedAccAttributes, loadAccAttributeCache, rememberAccMetadataDocument, saveAccAttributeCache } from "@/acc/attributeCache";
+import { parseAccMetadataDocument } from "@/acc/metadataDocument";
+import { installSavedAccMetadataDefaults } from "@/acc/savedDefaults";
+import { accMetadataDocument, resolveAccLinks as enrichIndexWithAccLinks } from "@/acc/resolveLinks";
 import { loadAccSettings, saveAccSettings, type AccSettings } from "@/acc/settings";
 import {
   beginSharePointLogin,
@@ -209,6 +212,22 @@ function expandAncestors(index: FileIndex, ids: Set<string>): Set<string> {
 }
 
 function recompute(next: Partial<PrismaState> = {}): void {
+  if (next.index) {
+    const applied = applySavedAccAttributes(next.index, state.acc.settings.projectId);
+    if (applied.applied > 0) {
+      const folderName = next.index.root?.name ?? "this folder";
+      next = {
+        ...next,
+        index: applied.index,
+        acc:
+          next.acc ??
+          {
+            ...state.acc,
+            resolveMessage: `Using the saved ACC attributes for “${folderName}” on ${applied.applied} files.`,
+          },
+      };
+    }
+  }
   const merged: PrismaState = { ...state, ...next };
   if (!merged.index) {
     state = {
@@ -486,13 +505,15 @@ export const actions = {
       });
       scanCancel = job.cancel;
       const result = await job.done;
+      await loadAccAttributeCache();
+      await importAccMetadataFiles(result.handles, result.index.root.name);
       rememberDirectory(result.index, handle);
       const emptyFailure =
         result.index.statistics.totalFiles === 0 && result.index.errors.length > 0
           ? result.index.errors[0]?.message ?? "Folder scan failed"
           : null;
       recompute({
-        index: result.index,
+        index: enrichFileIndexWithAccTaxonomy(result.index),
         handles: result.handles,
         scanning: false,
         selectedId: null,
@@ -523,6 +544,16 @@ export const actions = {
         return;
       }
       const parsed: unknown = JSON.parse(text);
+      if (parseAccMetadataDocument(parsed)) {
+        const folderName = state.index?.root.name ?? "";
+        if (!folderName) {
+          setState({ loadError: "Load the folder first, then open the ACC metadata JSON." });
+          return;
+        }
+        rememberAccMetadataDocument(parsed, folderName, new Date().toISOString());
+        recompute({ index: state.index ?? undefined });
+        return;
+      }
       if (isWorkspaceFile(parsed)) {
         applyWorkspace(parsed);
         return;
@@ -820,10 +851,13 @@ export const actions = {
         settings: loadAccSettings(),
       },
     });
+    if (state.index) {
+      recompute({ index: state.index });
+    }
   },
   async signInAcc(): Promise<void> {
     try {
-      await beginAccLogin(state.acc.settings.clientId);
+      await beginAccLogin(state.acc.settings.clientId, state.acc.settings.clientSecret);
     } catch (error) {
       setState({
         loadError: error instanceof Error ? error.message : "Could not start ACC sign-in",
@@ -851,6 +885,9 @@ export const actions = {
           },
           loadError: null,
         });
+        if (state.index) {
+          recompute({ index: state.index });
+        }
       } else {
         setState({
           acc: {
@@ -904,12 +941,30 @@ export const actions = {
           },
         });
       });
+      const note = result.metadataNote ? ` ${result.metadataNote}` : "";
+      const names = result.attributeNames.length > 0 ? ` Group by: ${result.attributeNames.join(", ")}.` : "";
+      const byName = result.nameMatched > 0 ? ` ${result.nameMatched} matched by file name.` : "";
+      const ambiguous = result.ambiguous > 0 ? ` ${result.ambiguous} names exist in more than one ACC folder.` : "";
+      let savedLocally = "";
+      try {
+        const savedCount = await saveAccAttributeCache(projectId, result.index);
+        savedLocally =
+          savedCount > 0
+            ? ` Saved as the default for “${result.index.root.name}” and this project.`
+            : ` No ACC attributes were saved for “${result.index.root.name}”.`;
+      } catch (error) {
+        savedLocally = ` ${error instanceof Error ? error.message : "Could not save ACC attributes on this computer."}`;
+      }
+      downloadText(
+        `${result.index.root.name}.acc-metadata.json`,
+        accMetadataDocument(result.index, { error: result.metadataNote, attributes: result.attributeNames }),
+      );
       recompute({
         index: result.index,
         acc: {
           ...state.acc,
           resolving: false,
-          resolveMessage: `ACC links: ${result.resolved} resolved, ${result.missing} missing`,
+          resolveMessage: `ACC links: ${result.resolved} resolved, ${result.missing} missing. Metadata on ${result.metadataAttached} files.${byName}${ambiguous}${names}${note}${savedLocally}`,
           signedIn: true,
         },
       });
@@ -1272,4 +1327,26 @@ async function pickTextFile(types: Array<{ description?: string; accept: Record<
   });
 }
 
+async function importAccMetadataFiles(handles: HandleMap, folderName: string): Promise<void> {
+  for (const handle of handles.values()) {
+    if (handle.kind !== "file" || !handle.name.toLowerCase().endsWith(".acc-metadata.json")) {
+      continue;
+    }
+    try {
+      const file = await (handle as FileSystemFileHandle).getFile();
+      rememberAccMetadataDocument(JSON.parse(await file.text()) as unknown, folderName, new Date(file.lastModified).toISOString());
+    } catch {
+      // A copy that cannot be read stays out of the default.
+    }
+  }
+}
+
 document.documentElement.dataset.theme = state.config.theme;
+installSavedAccMetadataDefaults();
+void loadAccAttributeCache()
+  .then(() => {
+    if (state.index) {
+      recompute({ index: state.index });
+    }
+  })
+  .catch(() => undefined);

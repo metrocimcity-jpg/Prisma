@@ -62,24 +62,44 @@ export function isAccSignedIn(): boolean {
   return loadAccToken() !== null;
 }
 
-export async function beginAccLogin(clientId: string, scopes = "data:read account:read"): Promise<void> {
+interface AccPendingLogin {
+  state: string;
+  clientId: string;
+  /** Present for PKCE / public apps. Omitted when a client secret is used. */
+  verifier?: string;
+  clientSecret?: string;
+}
+
+export async function beginAccLogin(
+  clientId: string,
+  clientSecret = "",
+  scopes = "data:read account:read",
+): Promise<void> {
   const trimmed = clientId.trim();
+  const secret = clientSecret.trim();
   if (!trimmed) {
     throw new Error("Set your Autodesk APS Client ID in Settings first.");
   }
-  const verifier = randomString(64);
-  const challenge = base64Url(await sha256(verifier));
   const state = randomString(16);
-  sessionStorage.setItem(PKCE_KEY, JSON.stringify({ verifier, state, clientId: trimmed }));
+  const pending: AccPendingLogin = { state, clientId: trimmed };
+  if (secret) {
+    pending.clientSecret = secret;
+  } else {
+    pending.verifier = randomString(64);
+  }
+  sessionStorage.setItem(PKCE_KEY, JSON.stringify(pending));
 
   const url = new URL(`${AUTH_BASE}/authorize`);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", trimmed);
   url.searchParams.set("redirect_uri", redirectUri());
   url.searchParams.set("scope", scopes);
-  url.searchParams.set("code_challenge", challenge);
-  url.searchParams.set("code_challenge_method", "S256");
   url.searchParams.set("state", state);
+  if (pending.verifier) {
+    const challenge = base64Url(await sha256(pending.verifier));
+    url.searchParams.set("code_challenge", challenge);
+    url.searchParams.set("code_challenge_method", "S256");
+  }
   window.location.assign(url.toString());
 }
 
@@ -103,22 +123,29 @@ export async function completeAccLoginFromUrl(currentUrl = window.location.href)
   if (typeof state === "string" && state.startsWith("sp.")) {
     return false;
   }
-  const pkce = JSON.parse(raw) as { verifier: string; state: string; clientId: string };
+  const pkce = JSON.parse(raw) as AccPendingLogin;
   if (pkce.state !== state) {
     throw new Error("ACC sign-in state mismatch. Try Sign in to ACC again.");
   }
 
   const body = new URLSearchParams({
     grant_type: "authorization_code",
-    client_id: pkce.clientId,
-    code_verifier: pkce.verifier,
     code,
     redirect_uri: redirectUri(),
   });
+  const headers: Record<string, string> = { "Content-Type": "application/x-www-form-urlencoded" };
+  if (pkce.clientSecret) {
+    headers.Authorization = `Basic ${btoa(`${pkce.clientId}:${pkce.clientSecret}`)}`;
+  } else {
+    body.set("client_id", pkce.clientId);
+    if (pkce.verifier) {
+      body.set("code_verifier", pkce.verifier);
+    }
+  }
 
   const response = await fetch(`${AUTH_BASE}/token`, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers,
     body,
   });
   if (!response.ok) {

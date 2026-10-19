@@ -8,7 +8,7 @@ import { findVizNode, focusedVizNode } from "@/visualization/tree";
 import { formatBytes, formatNumber } from "@/utils/format";
 import { isFilterActive } from "@/filtering/FilterEngine";
 import { HierarchyList } from "@/ui/layout/HierarchyList";
-import { hierarchyCatalog } from "@/ui/layout/hierarchy";
+import { formatPropertyLabel, groupingMetadataKeys, hierarchyCatalog } from "@/ui/layout/hierarchy";
 import type { ColorBy, GroupBy, GroupLevel, LayoutMode } from "@/visualization/types";
 import { indexShowsAccTaxonomy } from "@/metadata/accTaxonomy";
 import { consumeSidebarSearchFocus } from "@/ui/layout/sidebarSearch";
@@ -101,12 +101,6 @@ function hierarchySummary(groupBy: readonly GroupLevel[], metadataKeys: readonly
   return groupBy.map((id) => labels.get(id) ?? id).join(" → ");
 }
 
-function formatPropertyLabel(key: string): string {
-  return key
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/[_-]+/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
 
 export function Sidebar(): JSX.Element {
   const { config, index, vizTree, focusPath, selectedId, search, filters } = usePrisma();
@@ -155,6 +149,7 @@ export function Sidebar(): JSX.Element {
   }
   const matching = search.trim().length > 0 || isFilterActive(filters);
   const metadataKeys = collectMetadataKeys(index);
+  const metadataGroupKeys = groupingMetadataKeys(metadataKeys);
   const showAccGroups = indexShowsAccTaxonomy(index);
   const focused = vizTree ? focusedVizNode(vizTree, focusPath) : null;
   const selectedViz = selectedId && vizTree ? findVizNode(vizTree, selectedId) : null;
@@ -234,6 +229,10 @@ export function Sidebar(): JSX.Element {
                 value={groupValue(viz.groupBy)}
                 onChange={(event) => {
                   const value = event.target.value;
+                  if (value.startsWith("meta:")) {
+                    actions.patchVisualization({ groupBy: [value as GroupLevel] });
+                    return;
+                  }
                   if (value === "custom") {
                     const property = viz.customProperty || metadataKeys[0] || "";
                     actions.patchVisualization({ groupBy: ["custom"], customProperty: property });
@@ -273,8 +272,13 @@ export function Sidebar(): JSX.Element {
                     <option value="accDocumentType">ACC-Document Type</option>
                   </>
                 ) : null}
-                {metadataKeys.length > 0 ? <option value="custom">Document metadata…</option> : null}
-                {!GROUP_PRESETS.has(groupValue(viz.groupBy)) ? (
+                {metadataGroupKeys.map((key) => (
+                  <option key={key} value={`meta:${key}`}>
+                    {formatPropertyLabel(key)}
+                  </option>
+                ))}
+                {!GROUP_PRESETS.has(groupValue(viz.groupBy)) &&
+                !metadataGroupKeys.some((key) => groupValue(viz.groupBy) === `meta:${key}`) ? (
                   <option value={groupValue(viz.groupBy)}>{hierarchySummary(viz.groupBy, metadataKeys)}</option>
                 ) : null}
               </select>

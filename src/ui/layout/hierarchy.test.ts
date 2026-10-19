@@ -1,15 +1,48 @@
 import { describe, expect, it } from "vitest";
-import { ensureCatalog, hierarchyCatalog, hierarchyGroupBy, mergeHierarchyOrder, moveHierarchyItem } from "@/ui/layout/hierarchy";
+import {
+  ensureCatalog,
+  hierarchyCatalog,
+  hierarchyGroupBy,
+  mergeHierarchyOrder,
+  moveHierarchyItem,
+  promoteHierarchySelection,
+} from "@/ui/layout/hierarchy";
 
 describe("hierarchyCatalog", () => {
   it("lists built-in and ACC fields, plus JSON keys that are not ACC aliases", () => {
-    const ids = hierarchyCatalog(["Zone", "discipline", "Package"]).map((field) => field.id);
+    const ids = hierarchyCatalog(["Zone", "discipline", "Package", "accUrl", "version"]).map((field) => field.id);
     expect(ids).toContain("accDiscipline");
     expect(ids).toContain("fileType");
     expect(ids).toContain("size");
     expect(ids).toContain("meta:Zone");
     expect(ids).toContain("meta:Package");
+    expect(ids).toContain("meta:version");
     expect(ids).not.toContain("meta:discipline");
+    expect(ids).not.toContain("meta:accUrl");
+  });
+});
+
+describe("promoteHierarchySelection", () => {
+  const catalog = ["folder", "fileType", "size", "meta:Version"];
+  const order = ["folder", "fileType", "size", "meta:Version"];
+
+  it("moves a newly selected field to the top", () => {
+    expect(promoteHierarchySelection(order, "meta:Version", true, catalog, ["folder"])).toEqual([
+      "meta:Version",
+      "folder",
+      "fileType",
+      "size",
+    ]);
+  });
+
+  it("drops an unchecked field below the fields that stay selected", () => {
+    const selected = ["meta:Version", "folder", "fileType", "size"];
+    expect(promoteHierarchySelection(selected, "meta:Version", false, catalog, ["meta:Version", "folder"])).toEqual([
+      "folder",
+      "meta:Version",
+      "fileType",
+      "size",
+    ]);
   });
 });
 

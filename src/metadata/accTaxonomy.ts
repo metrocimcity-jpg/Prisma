@@ -49,15 +49,42 @@ const METADATA_ALIASES: Record<string, string[]> = {
   ],
 };
 
-/** True when a metadata key is already represented by an ACC grouping field. */
-export function isAccMetadataAlias(key: string): boolean {
+/** Canonical ACC field for a column name such as Discipline, or null when it is not one of those fields. */
+export function canonicalAccMetadataKey(key: string): string | null {
   const needle = key.trim().toLowerCase();
+  if (needle.length === 0) {
+    return null;
+  }
   for (const [canonical, aliases] of Object.entries(METADATA_ALIASES)) {
     if (canonical.toLowerCase() === needle || aliases.some((alias) => alias.toLowerCase() === needle)) {
-      return true;
+      return canonical;
     }
   }
-  return false;
+  return null;
+}
+
+/** True when a metadata key is already represented by an ACC grouping field. */
+export function isAccMetadataAlias(key: string): boolean {
+  return canonicalAccMetadataKey(key) !== null;
+}
+
+/**
+ * Copy an ACC column onto the field Group by already uses.
+ * A column named Discipline replaces the filename value in ACC-Discipline.
+ */
+export function promoteAccAttributeKeys(metadata: Record<string, unknown>): Record<string, unknown> {
+  const next = { ...metadata };
+  for (const [key, value] of Object.entries(metadata)) {
+    const canonical = canonicalAccMetadataKey(key);
+    if (!canonical || canonical === key) {
+      continue;
+    }
+    if (value === undefined || value === null || String(value).trim().length === 0) {
+      continue;
+    }
+    next[canonical] = value;
+  }
+  return next;
 }
 
 /** True when a filename follows Accelerator naming: L-AC-… */

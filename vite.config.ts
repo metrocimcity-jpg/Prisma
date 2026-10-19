@@ -18,6 +18,10 @@ export default defineConfig({
     exclude: ["web-ifc", "@carrotsearch/foamtree"],
   },
   assetsInclude: ["**/*.wasm"],
+  server: {
+    port: 8080,
+    strictPort: true,
+  },
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],

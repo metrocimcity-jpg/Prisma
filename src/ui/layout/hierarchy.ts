@@ -32,12 +32,36 @@ export function formatPropertyLabel(key: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+/** Stored on the file, but not a name you would group by. */
+const NON_GROUPING_METADATA_KEYS = new Set([
+  "accurl",
+  "accweburl",
+  "autodeskurl",
+  "docsurl",
+  "accversions",
+  "entityid",
+  "folderurn",
+  "sharepointurl",
+  "source",
+  "weburl",
+]);
+
+/** Metadata field names that can appear in Group by, such as Version. Values stay on the files. */
+export function groupingMetadataKeys(metadataKeys: readonly string[]): string[] {
+  return metadataKeys
+    .filter((key) => {
+      const needle = key.trim().toLowerCase();
+      return needle.length > 0 && !NON_GROUPING_METADATA_KEYS.has(needle) && !isAccMetadataAlias(key);
+    })
+    .sort((a, b) => a.localeCompare(b));
+}
+
 /** Built-in fields, ACC fields, then any extra keys from a JSON index or ACC item metadata. */
 export function hierarchyCatalog(metadataKeys: readonly string[]): HierarchyField[] {
-  const dynamic = metadataKeys
-    .filter((key) => !isAccMetadataAlias(key))
-    .sort((a, b) => a.localeCompare(b))
-    .map((key) => ({ id: `meta:${key}` as const, label: formatPropertyLabel(key) }));
+  const dynamic = groupingMetadataKeys(metadataKeys).map((key) => ({
+    id: `meta:${key}` as const,
+    label: formatPropertyLabel(key),
+  }));
   return [...HIERARCHY_FIELDS, ...dynamic];
 }
 
@@ -57,6 +81,21 @@ export function ensureCatalog(order: readonly string[], catalogIds: readonly str
   const kept = order.filter((id) => catalog.has(id));
   const seen = new Set(kept);
   return [...kept, ...catalogIds.filter((id) => !seen.has(id))];
+}
+
+/** Checked fields jump to the top. Unchecked fields drop below the ones still selected. */
+export function promoteHierarchySelection(
+  order: readonly string[],
+  id: string,
+  selected: boolean,
+  catalogIds: readonly string[],
+  activeIds: readonly string[],
+): string[] {
+  if (selected) {
+    return [id, ...order.filter((item) => item !== id)];
+  }
+  const stillActive = order.filter((item) => item !== id && activeIds.includes(item));
+  return mergeHierarchyOrder(order, catalogIds, stillActive);
 }
 
 /** Move `draggingId` before or after `targetId`. Returns the same array when nothing changes. */
