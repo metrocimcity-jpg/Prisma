@@ -25,11 +25,12 @@ export const HIERARCHY_FIELDS: HierarchyField[] = [
 ];
 
 export function formatPropertyLabel(key: string): string {
-  return key
+  const words = key
     .replace(/^meta:/, "")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/[_-]+/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+    .toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 /** Stored on the file, but not a name you would group by. */

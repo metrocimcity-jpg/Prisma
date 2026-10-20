@@ -1,24 +1,7 @@
 import { builtinPresets } from "@/config/presets";
 import { actions, usePrisma } from "@/state/store";
+import { Breadcrumbs } from "@/ui/visualization/Breadcrumbs";
 import { useRef } from "react";
-
-function FolderIcon(): JSX.Element {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11Z" />
-    </svg>
-  );
-}
-
-function LayersIcon(): JSX.Element {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 2 2 7l10 5 10-5-10-5Z" />
-      <path d="M2 17l10 5 10-5" />
-      <path d="M2 12l10 5 10-5" />
-    </svg>
-  );
-}
 
 export function Toolbar({ onMenuIndex }: { onMenuIndex: (index: number | null) => void }): JSX.Element {
   const { config, panels } = usePrisma();
@@ -42,16 +25,14 @@ export function Toolbar({ onMenuIndex }: { onMenuIndex: (index: number | null) =
         <div className="mark">
           <span>Prisma</span>
         </div>
-        <div className="tag">file &amp; folder treemap — grouped by type / size / date</div>
+        <Breadcrumbs />
       </div>
       <div className="topbar-menu" onMouseLeave={() => onMenuIndex(null)}>
         <div className="topbar-menu-items">
         <button type="button" className="menu-item" title="Load a synthetic sample project" {...tabProps(0)} onClick={() => actions.loadSample()}>
-          <LayersIcon />
           Sample data
         </button>
         <button type="button" className="menu-item" title="Choose a real folder from your computer" {...tabProps(1)} onClick={() => void actions.openFolder()}>
-          <FolderIcon />
           Load folder
         </button>
         <button
@@ -61,7 +42,6 @@ export function Toolbar({ onMenuIndex }: { onMenuIndex: (index: number | null) =
           {...tabProps(2)}
           onClick={() => void actions.mergeFolder()}
         >
-          <FolderIcon />
           Merge folder
         </button>
         <button

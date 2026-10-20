@@ -8,6 +8,7 @@ import { findVizNode, focusedVizNode } from "@/visualization/tree";
 import { formatBytes, formatNumber } from "@/utils/format";
 import { isFilterActive } from "@/filtering/FilterEngine";
 import { HierarchyList } from "@/ui/layout/HierarchyList";
+import { SidebarSelect } from "@/ui/layout/SidebarSelect";
 import { formatPropertyLabel, groupingMetadataKeys, hierarchyCatalog } from "@/ui/layout/hierarchy";
 import type { ColorBy, GroupBy, GroupLevel, LayoutMode } from "@/visualization/types";
 import { indexShowsAccTaxonomy } from "@/metadata/accTaxonomy";
@@ -161,10 +162,61 @@ export function Sidebar(): JSX.Element {
   const maxSize = top[0]?.size ?? 1;
   const scopeSize = scope?.totalSize ?? 0;
   const stacking = viz.style.stacking;
+  const currentGroup = groupValue(viz.groupBy);
+  const groupOptions = [
+    { value: "folder", label: "Folder structure" },
+    { value: "extension", label: "File type" },
+    { value: "extension,size", label: "File type → size" },
+    { value: "size", label: "Size" },
+    { value: "date", label: "Date modified" },
+    { value: "date,extension", label: "Date modified → type" },
+    { value: "category", label: "Category" },
+    { value: "category,fileType,extension", label: "Category → Type → Ext" },
+    ...(showAccGroups
+      ? [
+          { value: "accPortfolio", label: "ACC-Portfolio" },
+          { value: "accProgram", label: "ACC-Program" },
+          { value: "accSubProgram", label: "ACC-Sub Program" },
+          { value: "accOriginator", label: "ACC-Originator" },
+          { value: "accLocation", label: "ACC-Location" },
+          { value: "accDiscipline", label: "ACC-Discipline" },
+          { value: "accDocumentType", label: "ACC-Document Type" },
+        ]
+      : []),
+    ...metadataGroupKeys.map((key) => ({ value: `meta:${key}`, label: formatPropertyLabel(key) })),
+  ];
+  if (!GROUP_PRESETS.has(currentGroup) && !metadataGroupKeys.some((key) => currentGroup === `meta:${key}`)) {
+    groupOptions.push({ value: currentGroup, label: hierarchySummary(viz.groupBy, metadataKeys) });
+  }
+
+  function applyGroup(value: string): void {
+    if (value.startsWith("meta:")) {
+      actions.patchVisualization({ groupBy: [value as GroupLevel] });
+      return;
+    }
+    if (value === "custom") {
+      const property = viz.customProperty || metadataKeys[0] || "";
+      actions.patchVisualization({ groupBy: ["custom"], customProperty: property });
+      return;
+    }
+    const groups = value.split(",") as GroupBy[];
+    const accLabels = ACC_GROUP_BY.has(groups[0] ?? "");
+    actions.patchVisualization({
+      groupBy: groups,
+      ...(accLabels
+        ? {
+            style: {
+              groupLabelMinFontSize: 4,
+              groupLabelMaxFontSize: 22,
+            },
+          }
+        : {}),
+    });
+  }
 
   const rail = [
     { id: "search" as const, label: "Search", icon: <SearchIcon /> },
-    { id: "view" as const, label: "File Explorer view", icon: <ViewIcon /> },
+    { id: "view" as const, label: "Structure", icon: <ViewIcon /> },
     { id: "overview" as const, label: "Overview", icon: <OverviewIcon /> },
     { id: "selection" as const, label: "File Identity", icon: <SelectionIcon /> },
   ];
@@ -203,7 +255,6 @@ export function Sidebar(): JSX.Element {
           {active === "search" ? (
             <>
               <div className="sidebar-search search-wrap">
-                <SearchIcon />
                 <input
                   ref={searchRef}
                   className="search"
@@ -220,71 +271,14 @@ export function Sidebar(): JSX.Element {
 
           {active === "view" ? (
             <div className="card" id="sidebar-section-view">
-              <h3>File Explorer view</h3>
+              <h3>Structure</h3>
               <label className="field-label" htmlFor="group-by">
                 Group by
               </label>
-              <select
-                id="group-by"
-                value={groupValue(viz.groupBy)}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (value.startsWith("meta:")) {
-                    actions.patchVisualization({ groupBy: [value as GroupLevel] });
-                    return;
-                  }
-                  if (value === "custom") {
-                    const property = viz.customProperty || metadataKeys[0] || "";
-                    actions.patchVisualization({ groupBy: ["custom"], customProperty: property });
-                    return;
-                  }
-                  const groups = value.split(",") as GroupBy[];
-                  const accLabels = ACC_GROUP_BY.has(groups[0] ?? "");
-                  actions.patchVisualization({
-                    groupBy: groups,
-                    ...(accLabels
-                      ? {
-                          style: {
-                            groupLabelMinFontSize: 4,
-                            groupLabelMaxFontSize: 22,
-                          },
-                        }
-                      : {}),
-                  });
-                }}
-              >
-                <option value="folder">Folder structure</option>
-                <option value="extension">File type</option>
-                <option value="extension,size">File type → size</option>
-                <option value="size">Size</option>
-                <option value="date">Date modified</option>
-                <option value="date,extension">Date modified → type</option>
-                <option value="category">Category</option>
-                <option value="category,fileType,extension">Category → Type → Ext</option>
-                {showAccGroups ? (
-                  <>
-                    <option value="accPortfolio">ACC-Portfolio</option>
-                    <option value="accProgram">ACC-Program</option>
-                    <option value="accSubProgram">ACC-Sub Program</option>
-                    <option value="accOriginator">ACC-Originator</option>
-                    <option value="accLocation">ACC-Location</option>
-                    <option value="accDiscipline">ACC-Discipline</option>
-                    <option value="accDocumentType">ACC-Document Type</option>
-                  </>
-                ) : null}
-                {metadataGroupKeys.map((key) => (
-                  <option key={key} value={`meta:${key}`}>
-                    {formatPropertyLabel(key)}
-                  </option>
-                ))}
-                {!GROUP_PRESETS.has(groupValue(viz.groupBy)) &&
-                !metadataGroupKeys.some((key) => groupValue(viz.groupBy) === `meta:${key}`) ? (
-                  <option value={groupValue(viz.groupBy)}>{hierarchySummary(viz.groupBy, metadataKeys)}</option>
-                ) : null}
-              </select>
+              <SidebarSelect id="group-by" value={currentGroup} options={groupOptions} onChange={applyGroup} />
 
               <label className="field-label" htmlFor="hierarchy">
-                Multi-Level Hierarchy
+                Multi-level hierarchy
               </label>
               <HierarchyList
                 metadataKeys={metadataKeys}
@@ -308,65 +302,61 @@ export function Sidebar(): JSX.Element {
               <label className="field-label" htmlFor="color-by">
                 Color by
               </label>
-              <select
+              <SidebarSelect
                 id="color-by"
                 value={viz.colorBy}
-                onChange={(event) => {
-                  const value = event.target.value as ColorBy;
+                options={[
+                  { value: "extension", label: "File type" },
+                  { value: "fileSize", label: "Size" },
+                  { value: "modifiedDate", label: "Recency" },
+                  { value: "category", label: "Category" },
+                  { value: "folder", label: "Folder" },
+                  ...(metadataKeys.length > 0 ? [{ value: "custom", label: "Document metadata…" }] : []),
+                ]}
+                onChange={(value) => {
                   if (value === "custom") {
                     const property = viz.customProperty || metadataKeys[0] || "";
                     actions.patchVisualization({ colorBy: "custom", customProperty: property });
                     return;
                   }
-                  actions.patchVisualization({ colorBy: value });
+                  actions.patchVisualization({ colorBy: value as ColorBy });
                 }}
-              >
-                <option value="extension">File type</option>
-                <option value="fileSize">Size</option>
-                <option value="modifiedDate">Recency</option>
-                <option value="category">Category</option>
-                <option value="folder">Folder</option>
-                {metadataKeys.length > 0 ? <option value="custom">Document metadata…</option> : null}
-              </select>
+              />
 
               {metadataKeys.length > 0 && (viz.groupBy[0] === "custom" || viz.colorBy === "custom") ? (
                 <>
                   <label className="field-label" htmlFor="custom-property">
                     Metadata property
                   </label>
-                  <select
+                  <SidebarSelect
                     id="custom-property"
                     value={viz.customProperty || metadataKeys[0]}
-                    onChange={(event) => actions.patchVisualization({ customProperty: event.target.value })}
-                  >
-                    {metadataKeys.map((key) => (
-                      <option key={key} value={key}>
-                        {formatPropertyLabel(key)}
-                      </option>
-                    ))}
-                  </select>
+                    options={metadataKeys.map((key) => ({ value: key, label: formatPropertyLabel(key) }))}
+                    onChange={(value) => actions.patchVisualization({ customProperty: value })}
+                  />
                 </>
               ) : null}
 
               <label className="field-label" htmlFor="display">
                 Display
               </label>
-              <select
+              <SidebarSelect
                 id="display"
                 value={stacking}
-                onChange={(event) =>
+                options={[
+                  { value: "flattened", label: "Flattened (see all levels)" },
+                  { value: "hierarchical", label: "Hierarchical (drill down)" },
+                ]}
+                onChange={(value) =>
                   actions.patchVisualization({
-                    layout: (event.target.value === "flattened" ? "sunburst" : "foam") as LayoutMode,
+                    layout: (value === "flattened" ? "sunburst" : "foam") as LayoutMode,
                     style: {
-                      stacking: event.target.value === "flattened" ? "flattened" : "hierarchical",
+                      stacking: value === "flattened" ? "flattened" : "hierarchical",
                       foamLayout: "relaxed",
                     },
                   })
                 }
-              >
-                <option value="flattened">Flattened (see all levels)</option>
-                <option value="hierarchical">Hierarchical (drill down)</option>
-              </select>
+              />
             </div>
           ) : null}
 

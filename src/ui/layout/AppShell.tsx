@@ -9,7 +9,6 @@ import { PreviewPanel } from "@/ui/layout/PreviewPanel";
 import { Sidebar } from "@/ui/layout/Sidebar";
 import { StatusBar } from "@/ui/layout/StatusBar";
 import { Toolbar } from "@/ui/layout/Toolbar";
-import { Breadcrumbs } from "@/ui/visualization/Breadcrumbs";
 import { VizStage } from "@/ui/visualization/VizStage";
 import { usePrisma } from "@/state/store";
 import { useState } from "react";
@@ -49,7 +48,6 @@ export function AppShell(): JSX.Element {
         </div>
       </div>
       <Toolbar onMenuIndex={setMenuIndex} />
-      <Breadcrumbs />
       <div className="layout">
         {panels.filters ? <Sidebar /> : null}
         <main className={`stage ${tone}`} style={{ background: showMap ? background : "transparent" }}>

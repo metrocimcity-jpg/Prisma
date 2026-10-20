@@ -16,6 +16,10 @@ describe("DefaultFileClassifier", () => {
     });
     expect(classifier.classify({ name: "site.ifc", nodeType: "file" }).category).toBe("BIM");
     expect(classifier.classify({ name: "cloud.las", nodeType: "file" }).category).toBe("GIS");
+    expect(classifier.classify({ name: "graph.dyn", nodeType: "file" })).toMatchObject({
+      category: "Programming",
+      fileType: "Dynamo Graph",
+    });
   });
 
   it("does not invent a type for unknown extensions", () => {

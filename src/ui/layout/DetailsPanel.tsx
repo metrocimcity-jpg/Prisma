@@ -16,10 +16,11 @@ function daysAgo(value: string | null): string {
 }
 
 function formatMetadataLabel(key: string): string {
-  return key
+  const words = key
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/[_-]+/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+    .toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 function isAccMetadataKey(key: string): boolean {

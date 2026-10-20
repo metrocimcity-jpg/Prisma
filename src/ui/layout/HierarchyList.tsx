@@ -1,6 +1,4 @@
 import { useMemo, useRef, useState } from "react";
-
-import type { GroupLevel } from "@/visualization/types";
 import {
   ensureCatalog,
   hierarchyCatalog,
@@ -9,24 +7,12 @@ import {
   moveHierarchyItem,
   promoteHierarchySelection,
 } from "@/ui/layout/hierarchy";
+import type { GroupLevel } from "@/visualization/types";
 
 interface HierarchyListProps {
   metadataKeys: readonly string[];
   groupBy: readonly GroupLevel[];
   onChange: (groupBy: GroupLevel[]) => void;
-}
-
-function GripIcon(): JSX.Element {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="9" cy="7" r="1.3" fill="currentColor" />
-      <circle cx="15" cy="7" r="1.3" fill="currentColor" />
-      <circle cx="9" cy="12" r="1.3" fill="currentColor" />
-      <circle cx="15" cy="12" r="1.3" fill="currentColor" />
-      <circle cx="9" cy="17" r="1.3" fill="currentColor" />
-      <circle cx="15" cy="17" r="1.3" fill="currentColor" />
-    </svg>
-  );
 }
 
 export function HierarchyList({ metadataKeys, groupBy, onChange }: HierarchyListProps): JSX.Element {
@@ -37,6 +23,7 @@ export function HierarchyList({ metadataKeys, groupBy, onChange }: HierarchyList
   const [seenGroup, setSeenGroup] = useState(groupKey);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const draggedRef = useRef(false);
 
   if (seenGroup !== groupKey) {
     setSeenGroup(groupKey);
@@ -61,7 +48,7 @@ export function HierarchyList({ metadataKeys, groupBy, onChange }: HierarchyList
 
   return (
     <div className="hierarchy">
-      <ul ref={listRef} className="hierarchy-list" id="hierarchy" aria-label="Multi-Level Hierarchy">
+      <ul ref={listRef} className="hierarchy-list" id="hierarchy" aria-label="Multi-level hierarchy">
         {order.map((id) => {
           const checked = active.has(id);
           if (checked) {
@@ -71,13 +58,29 @@ export function HierarchyList({ metadataKeys, groupBy, onChange }: HierarchyList
           return (
             <li
               key={id}
+              className={checked ? "is-on" : undefined}
               draggable
               data-dragging={draggingId === id ? "true" : "false"}
+              onClick={() => {
+                if (draggedRef.current) {
+                  draggedRef.current = false;
+                  return;
+                }
+                const selected = !checked;
+                const nextActive = selected
+                  ? [id, ...groupBy.filter((level) => level !== id)]
+                  : groupBy.filter((level) => level !== id);
+                publish(promoteHierarchySelection(order, id, selected, catalogIds, groupBy), nextActive);
+                if (selected) {
+                  listRef.current?.scrollTo({ top: 0 });
+                }
+              }}
               onDragStart={(event) => {
                 if ((event.target as HTMLElement).closest("input")) {
                   event.preventDefault();
                   return;
                 }
+                draggedRef.current = true;
                 event.dataTransfer.effectAllowed = "move";
                 event.dataTransfer.setData("text/plain", id);
                 window.setTimeout(() => setDraggingId(id), 0);
@@ -107,26 +110,15 @@ export function HierarchyList({ metadataKeys, groupBy, onChange }: HierarchyList
                 setCustomOrder(next);
               }}
             >
-              <span className="hierarchy-grip" title="Drag to reorder">
-                <GripIcon />
-              </span>
-              <span className="hierarchy-rank">{itemRank > 0 ? itemRank : ""}</span>
               <span className="hierarchy-label">{labels.get(id as GroupLevel) ?? id}</span>
+              {itemRank > 0 ? <span className="cnt">{itemRank}</span> : null}
               <input
                 type="checkbox"
                 checked={checked}
-                aria-label={`Include ${labels.get(id as GroupLevel) ?? id} in the hierarchy`}
+                tabIndex={-1}
+                aria-hidden="true"
                 onPointerDown={(event) => event.stopPropagation()}
-                onChange={(event) => {
-                  const selected = event.target.checked;
-                  const nextActive = selected
-                    ? [id, ...groupBy.filter((level) => level !== id)]
-                    : groupBy.filter((level) => level !== id);
-                  publish(promoteHierarchySelection(order, id, selected, catalogIds, groupBy), nextActive);
-                  if (selected) {
-                    listRef.current?.scrollTo({ top: 0 });
-                  }
-                }}
+                onChange={() => undefined}
               />
             </li>
           );

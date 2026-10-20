@@ -146,7 +146,7 @@ export function SunburstCanvas(): JSX.Element {
       .append("g")
       .attr("pointer-events", "none")
       .attr("text-anchor", "middle")
-      .attr("font-size", 10)
+      .attr("font-size", 12)
       .attr("font-family", "sans-serif")
       .selectAll("text")
       .data(arcs.filter((d) => ((d.y0 + d.y1) / 2) * (d.x1 - d.x0) > 10))

@@ -1,5 +1,6 @@
 import { AccSettingsCard } from "@/ui/dialogs/AccSettingsCard";
 import { SharePointSettingsCard } from "@/ui/dialogs/SharePointSettingsCard";
+import { SidebarSelect } from "@/ui/layout/SidebarSelect";
 import { actions, usePrisma } from "@/state/store";
 import { prismaLayoutFromFoam } from "@/visualization/defaultStyle";
 import { settingGroups, type SettingControl } from "@/visualization/foamtree/settingsSchema";
@@ -66,16 +67,15 @@ function SettingRow({ control }: { control: SettingControl }): JSX.Element {
 
   if (control.type === "enum") {
     return (
-      <label className="settings-row" htmlFor={id}>
-        <span>{control.label}</span>
-        <select id={id} value={String(value)} onChange={(event) => commit(event.target.value)}>
-          {control.values.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label ?? item.value}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="settings-row">
+        <label htmlFor={id}>{control.label}</label>
+        <SidebarSelect
+          id={id}
+          value={String(value)}
+          options={control.values.map((item) => ({ value: item.value, label: item.label ?? item.value }))}
+          onChange={(next) => commit(next)}
+        />
+      </div>
     );
   }
 

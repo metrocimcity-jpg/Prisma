@@ -82,6 +82,8 @@ const EXTENSION_RULES: ExtensionRule[] = [
   { extension: "tsx", mimeType: "text/tsx", fileType: "TypeScript React", category: "Programming", subcategory: "Source" },
   { extension: "jsx", mimeType: "text/jsx", fileType: "JavaScript React", category: "Programming", subcategory: "Source" },
   { extension: "py", mimeType: "text/x-python", fileType: "Python", category: "Programming", subcategory: "Source" },
+  { extension: "dyn", mimeType: null, fileType: "Dynamo Graph", category: "Programming", subcategory: "Visual" },
+  { extension: "dyf", mimeType: null, fileType: "Dynamo Custom Node", category: "Programming", subcategory: "Visual" },
   { extension: "cs", mimeType: "text/x-csharp", fileType: "C#", category: "Programming", subcategory: "Source" },
   { extension: "cpp", mimeType: "text/x-c++src", fileType: "C++", category: "Programming", subcategory: "Source" },
   { extension: "c", mimeType: "text/x-csrc", fileType: "C", category: "Programming", subcategory: "Source" },

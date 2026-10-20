@@ -66,7 +66,7 @@ export function AnalysisLineChart({ points }: { points: AnalysisLinePoint[] }): 
         .attr("aria-label", "Number of files over time. Each line is a subprogram.")
         .style("color", "var(--text)")
         .style("font-family", "var(--font-ui)")
-        .style("font-size", "12px")
+        .style("font-size", "14.4px")
         .style("cursor", "crosshair");
 
       svg
@@ -163,7 +163,7 @@ export function AnalysisLineChart({ points }: { points: AnalysisLinePoint[] }): 
       dot.append("circle").attr("r", 4).attr("fill", "var(--panel)").attr("stroke-width", 2);
       dot
         .append("text")
-        .attr("font-size", 12)
+        .attr("font-size", 14.4)
         .attr("fill", "currentColor")
         .attr("text-anchor", "middle")
         .attr("y", -10);

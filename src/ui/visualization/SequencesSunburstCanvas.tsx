@@ -148,7 +148,7 @@ export function SequencesSunburstCanvas(): JSX.Element {
       .attr("text-anchor", "middle")
       .attr("fill", "#444")
       .attr("y", 42)
-      .attr("font-size", "12px")
+      .attr("font-size", "14.4px")
       .style("visibility", "hidden")
       .text("");
 

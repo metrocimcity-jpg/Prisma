@@ -1,6 +1,7 @@
 import { actions, usePrisma } from "@/state/store";
 import { AnalysisBubbleChart } from "@/ui/layout/AnalysisBubbleChart";
 import { AnalysisLineChart } from "@/ui/layout/AnalysisLineChart";
+import { SidebarSelect } from "@/ui/layout/SidebarSelect";
 import { analysisBubbles } from "@/ui/layout/analysisBubbles";
 import { analysisLines } from "@/ui/layout/analysisLines";
 import { filesInScope } from "@/ui/layout/schedule";
@@ -38,15 +39,17 @@ export function AnalysisSchedule(): JSX.Element {
           {scopeLabel}
           {plotted > 0 ? ` · ${plotted}` : ""}
         </span>
-        <select
+        <SidebarSelect
+          id="analysis-chart"
           className="analysis-chart-select"
-          aria-label="Analysis chart"
+          ariaLabel="Analysis chart"
           value={chart}
-          onChange={(event) => setChart(event.target.value as AnalysisChart)}
-        >
-          <option value="scatter">Age and subprogram</option>
-          <option value="lines">Line Chart - /Subprogram/Time/FileCount</option>
-        </select>
+          options={[
+            { value: "scatter", label: "Age and subprogram" },
+            { value: "lines", label: "Line Chart - /Subprogram/Time/FileCount" },
+          ]}
+          onChange={(value) => setChart(value as AnalysisChart)}
+        />
         <button type="button" className="ghost" onClick={() => actions.setPanel("analysis", false)}>
           Close
         </button>

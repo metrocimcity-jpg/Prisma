@@ -74,7 +74,7 @@ const ScatterPlot = memo(function ScatterPlot({
         .attr("aria-label", "File age in weeks by subprogram. Drag to select files. Color is subprogram.")
         .style("color", "var(--text)")
         .style("font-family", "var(--font-ui)")
-        .style("font-size", "12px");
+        .style("font-size", "14.4px");
 
       svg
         .append("g")

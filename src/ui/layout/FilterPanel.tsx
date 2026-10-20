@@ -1,4 +1,5 @@
 import { actions, usePrisma } from "@/state/store";
+import { CATEGORY_GROUPS, categoryGroupActive, toggleCategoryGroup } from "@/filtering/categoryGroups";
 import { colorForExt, knownExtensions } from "@/visualization/palettes";
 
 export function FilterPanel(): JSX.Element {
@@ -25,6 +26,25 @@ export function FilterPanel(): JSX.Element {
   return (
     <div className="card" id="sidebar-section-filters">
       <h3>Filters</h3>
+      <label className="field-label">Category</label>
+      <div className="chips">
+        {CATEGORY_GROUPS.map((group) => {
+          const count = files.filter((file) => file.category !== null && group.members.includes(file.category)).length;
+          const active = categoryGroupActive(filters.categories, group.members);
+          return (
+            <button
+              key={group.id}
+              type="button"
+              className={active ? "chip active" : "chip"}
+              onClick={() => actions.patchFilters({ categories: toggleCategoryGroup(filters.categories, group.members) })}
+            >
+              <span className="sw" style={{ background: group.color }} />
+              {group.label} <span className="cnt">{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <label className="field-label">File type</label>
       <div className="chips">
         {extUniverse.map((entry) => (
@@ -40,7 +60,7 @@ export function FilterPanel(): JSX.Element {
         ))}
       </div>
 
-      <label className="field-label">Size range (KB)</label>
+      <label className="field-label">Size range (kb)</label>
       <div className="row-2" key={`${filters.sizeMin ?? ""}-${filters.sizeMax ?? ""}`}>
         <input
           type="number"

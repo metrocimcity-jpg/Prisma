@@ -1,4 +1,5 @@
 import { actions, usePrisma } from "@/state/store";
+import { SidebarSelect } from "@/ui/layout/SidebarSelect";
 import type { GraphDrive, GraphSite } from "@/sharepoint/graph";
 import { useEffect, useState } from "react";
 
@@ -145,36 +146,30 @@ export function SharePointBrowserDialog(): JSX.Element | null {
           <label className="field-label" htmlFor="sp-site">
             Site
           </label>
-          <select
+          <SidebarSelect
             id="sp-site"
             value={selectedSiteId ?? ""}
             disabled={loadingSites || sharePoint.importing || sites.length === 0}
-            onChange={(event) => setSelectedSiteId(event.target.value || null)}
-          >
-            <option value="">{loadingSites ? "Loading sites…" : "Select a site…"}</option>
-            {sites.map((site) => (
-              <option key={site.id} value={site.id}>
-                {site.displayName}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: "", label: loadingSites ? "Loading sites…" : "Select a site…" },
+              ...sites.map((site) => ({ value: site.id, label: site.displayName })),
+            ]}
+            onChange={(value) => setSelectedSiteId(value || null)}
+          />
 
           <label className="field-label" htmlFor="sp-drive">
             Document library
           </label>
-          <select
+          <SidebarSelect
             id="sp-drive"
             value={selectedDriveId ?? ""}
             disabled={!selectedSiteId || loadingDrives || sharePoint.importing || drives.length === 0}
-            onChange={(event) => setSelectedDriveId(event.target.value || null)}
-          >
-            <option value="">{loadingDrives ? "Loading libraries…" : "Select a library…"}</option>
-            {drives.map((drive) => (
-              <option key={drive.id} value={drive.id}>
-                {drive.name}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: "", label: loadingDrives ? "Loading libraries…" : "Select a library…" },
+              ...drives.map((drive) => ({ value: drive.id, label: drive.name })),
+            ]}
+            onChange={(value) => setSelectedDriveId(value || null)}
+          />
 
           {(localError || sharePoint.message) && (
             <div className="stat-line">
