@@ -38,8 +38,15 @@ function foamInteractionOptions() {
       actions.select(id);
       void actions.openNode(id);
     },
-    onGroupHover: (event: FoamTreeEvent) => {
+    onGroupHover(this: FoamTree | void, event: FoamTreeEvent) {
       actions.hover(event.group ? String((event.group as PrismaFoamGroup).id) : null);
+      const foam = this;
+      if (!foam || typeof foam.redraw !== "function") {
+        return;
+      }
+      queueMicrotask(() => {
+        foam.redraw();
+      });
     },
     onGroupSelectionChanged: (event: FoamTreeEvent) => {
       const first = event.groups?.[0] as PrismaFoamGroup | undefined;

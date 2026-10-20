@@ -3,6 +3,7 @@ import type { VisualizationConfig } from "@/visualization/types";
 import type { FoamTreeOptions } from "@carrotsearch/foamtree";
 import { foamLayoutOptions } from "./dataObject";
 import type { PrismaFoamGroup } from "./dataObject";
+import { applyHoverColor, drawHoveredCell, type HoverDrawProperties } from "./hover";
 
 export function foamTreeViewOptions(
   config: VisualizationConfig,
@@ -63,7 +64,15 @@ export function foamTreeViewOptions(
     groupSelectionOutlineColor: style.groupSelectionOutlineColor,
     groupSelectionOutlineShadowSize: style.groupSelectionOutlineShadowSize,
     groupSelectionOutlineShadowColor: style.groupSelectionOutlineShadowColor,
-    groupHoverFillLightnessShift: style.groupHoverFillLightnessShift,
+    groupHoverFillHueShift: 0,
+    groupHoverFillSaturationShift: 0,
+    groupHoverFillLightnessShift: 0,
+    groupHoverStrokeHueShift: 0,
+    groupHoverStrokeSaturationShift: 10,
+    groupHoverStrokeLightnessShift: -16,
+    incrementalDraw: "none",
+    groupContentDecoratorTriggering: "onSurfaceDirty",
+    wireframeContentDecorationDrawing: "always",
     groupUnexposureLightnessShift: style.groupUnexposureLightnessShift,
     groupExposureShadowColor: style.groupExposureShadowColor,
     relaxationVisible: style.relaxationVisible,
@@ -75,24 +84,28 @@ export function foamTreeViewOptions(
     rainbowLightnessShift: style.rainbowLightnessShift,
     rainbowSaturationCorrection: style.rainbowSaturationCorrection,
     rainbowLightnessCorrection: style.rainbowLightnessCorrection,
-    groupColorDecorator: prismaColors
-      ? (
-          _options: unknown,
-          properties: { group?: PrismaFoamGroup },
-          variables: { groupColor: unknown; labelColor: string },
-        ) => {
-          const group = properties.group;
-          if (!group) {
-            return;
-          }
-          if (group.isFile && group.color) {
-            variables.groupColor = group.color;
-            variables.labelColor = "auto";
-            return;
-          }
+    groupColorDecorator: (
+      _options: unknown,
+      properties: { group?: PrismaFoamGroup; hovered?: boolean },
+      variables: { groupColor: unknown; labelColor: string },
+    ) => {
+      const group = properties.group;
+      if (prismaColors && group) {
+        if (group.isFile && group.color) {
+          variables.groupColor = group.color;
+          variables.labelColor = "auto";
+        } else {
           variables.groupColor = FOLDER_FILL;
         }
-      : () => undefined,
+      }
+      applyHoverColor(properties, variables);
+    },
+    groupContentDecorator: (
+      options: { stacking?: string },
+      properties: HoverDrawProperties,
+    ) => {
+      drawHoveredCell(options.stacking, properties);
+    },
     groupLabelDecorator: prismaColors
       ? (
           _options: unknown,

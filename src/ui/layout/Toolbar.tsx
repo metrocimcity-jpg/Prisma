@@ -20,13 +20,20 @@ function LayersIcon(): JSX.Element {
   );
 }
 
-export function Toolbar(): JSX.Element {
+export function Toolbar({ onMenuIndex }: { onMenuIndex: (index: number | null) => void }): JSX.Element {
   const { config, panels } = usePrisma();
   const moreRef = useRef<HTMLDetailsElement>(null);
 
   function runMore(action: () => void): void {
     moreRef.current?.removeAttribute("open");
     action();
+  }
+
+  function tabProps(index: number): { onMouseEnter: () => void; onFocus: () => void } {
+    return {
+      onMouseEnter: () => onMenuIndex(index),
+      onFocus: () => onMenuIndex(index),
+    };
   }
 
   return (
@@ -37,18 +44,21 @@ export function Toolbar(): JSX.Element {
         </div>
         <div className="tag">file &amp; folder treemap — grouped by type / size / date</div>
       </div>
-      <div className="topbar-actions">
-        <button type="button" title="Load a synthetic sample project" onClick={() => actions.loadSample()}>
+      <div className="topbar-menu" onMouseLeave={() => onMenuIndex(null)}>
+        <div className="topbar-menu-items">
+        <button type="button" className="menu-item" title="Load a synthetic sample project" {...tabProps(0)} onClick={() => actions.loadSample()}>
           <LayersIcon />
           Sample data
         </button>
-        <button className="primary" type="button" title="Choose a real folder from your computer" onClick={() => void actions.openFolder()}>
+        <button type="button" className="menu-item" title="Choose a real folder from your computer" {...tabProps(1)} onClick={() => void actions.openFolder()}>
           <FolderIcon />
           Load folder
         </button>
         <button
           type="button"
+          className="menu-item"
           title="Add another ACC or local folder into the current map"
+          {...tabProps(2)}
           onClick={() => void actions.mergeFolder()}
         >
           <FolderIcon />
@@ -56,32 +66,35 @@ export function Toolbar(): JSX.Element {
         </button>
         <button
           type="button"
-          className={panels.analysis ? "is-on" : undefined}
+          className={panels.analysis ? "menu-item is-on" : "menu-item"}
           title="Charts for the open folder"
           aria-pressed={panels.analysis}
+          {...tabProps(3)}
           onClick={() => actions.setPanel("analysis", !panels.analysis)}
         >
           Analysis
         </button>
         <button
           type="button"
-          className={panels.preview ? "is-on" : undefined}
+          className={panels.preview ? "menu-item is-on" : "menu-item"}
           title="Preview the selected file"
           aria-pressed={panels.preview}
+          {...tabProps(4)}
           onClick={() => actions.setPanel("preview", !panels.preview)}
         >
           Preview
         </button>
         <button
           type="button"
-          className={panels.settings ? "is-on" : undefined}
+          className={panels.settings ? "menu-item is-on" : "menu-item"}
           title="FoamTree settings"
           aria-pressed={panels.settings}
+          {...tabProps(5)}
           onClick={() => actions.setPanel("settings", !panels.settings)}
         >
           Settings
         </button>
-        <details className="more-menu" ref={moreRef}>
+        <details className="more-menu menu-item" ref={moreRef} {...tabProps(6)}>
           <summary>
             <span>More</span>
           </summary>
@@ -129,6 +142,7 @@ export function Toolbar(): JSX.Element {
             </button>
           </div>
         </details>
+        </div>
       </div>
     </header>
   );

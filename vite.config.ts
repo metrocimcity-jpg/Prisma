@@ -21,6 +21,10 @@ export default defineConfig({
   server: {
     port: 8080,
     strictPort: true,
+    // Windows file locks crash the watcher when it tries to watch the background video.
+    watch: {
+      ignored: ["**/*.mp4"],
+    },
   },
   test: {
     environment: "node",

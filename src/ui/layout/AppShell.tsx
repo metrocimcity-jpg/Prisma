@@ -12,6 +12,7 @@ import { Toolbar } from "@/ui/layout/Toolbar";
 import { Breadcrumbs } from "@/ui/visualization/Breadcrumbs";
 import { VizStage } from "@/ui/visualization/VizStage";
 import { usePrisma } from "@/state/store";
+import { useState } from "react";
 
 function stageTone(background: string): "stage-dark" | "stage-light" {
   const hex = background.trim();
@@ -29,17 +30,29 @@ function stageTone(background: string): "stage-dark" | "stage-light" {
 
 export function AppShell(): JSX.Element {
   const { index, panels, config } = usePrisma();
+  const [menuIndex, setMenuIndex] = useState<number | null>(null);
   useKeyboard();
   const background = config.visualization.style.stageBackground;
   const tone = stageTone(background);
+  const showMap = Boolean(index) && !panels.analysis;
 
   return (
     <div className="app-shell">
-      <Toolbar />
+      <div
+        className="app-backdrop"
+        data-active-index={menuIndex ?? undefined}
+        data-hot={menuIndex === null ? undefined : ""}
+      >
+        <div className="app-backdrop-pattern" />
+        <div className="app-backdrop-image">
+          <video className="app-backdrop-video" src="/1.mp4" autoPlay muted loop playsInline />
+        </div>
+      </div>
+      <Toolbar onMenuIndex={setMenuIndex} />
       <Breadcrumbs />
       <div className="layout">
         {panels.filters ? <Sidebar /> : null}
-        <main className={`stage ${tone}`} style={{ background }}>
+        <main className={`stage ${tone}`} style={{ background: showMap ? background : "transparent" }}>
           {panels.analysis ? <AnalysisSchedule /> : index ? <VizStage /> : <EmptyState />}
         </main>
         {panels.preview ? <PreviewPanel /> : null}
