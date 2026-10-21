@@ -58,7 +58,7 @@ export function foamTreeViewOptions(
     descriptionGroupSize: style.descriptionGroupSize,
     descriptionGroupMaxHeight: style.descriptionGroupMaxHeight,
     attributionTheme: style.attributionTheme,
-    parentFillOpacity: 1,
+    parentFillOpacity: style.parentFillOpacity,
     parentLabelOpacity: style.parentLabelOpacity,
     parentStrokeOpacity: 1,
     groupSelectionOutlineWidth: style.groupSelectionOutlineWidth,

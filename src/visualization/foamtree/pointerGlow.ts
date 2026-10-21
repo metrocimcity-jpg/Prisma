@@ -45,45 +45,16 @@ export function fromCenter({ x, y }: PointerRatio): number {
   return Math.min(Math.max(0, Math.sqrt((y - 0.5) * (y - 0.5) + (x - 0.5) * (x - 0.5)) / 0.5), 1);
 }
 
-function boundsOf(polygon: GlowPoint[]): { left: number; top: number; width: number; height: number } {
-  let left = Infinity;
-  let top = Infinity;
-  let right = -Infinity;
-  let bottom = -Infinity;
-  for (const point of polygon) {
-    left = Math.min(left, point.x);
-    top = Math.min(top, point.y);
-    right = Math.max(right, point.x);
-    bottom = Math.max(bottom, point.y);
-  }
-  return { left, top, width: Math.max(right - left, 1), height: Math.max(bottom - top, 1) };
-}
-
 function canDraw(ctx: HoverDrawProperties["context"]): ctx is HoverDrawProperties["context"] & GlowContext {
   const draw = ctx as Partial<GlowContext>;
   return typeof draw.save === "function" && typeof draw.stroke === "function" && typeof draw.createRadialGradient === "function";
 }
 
-/** Blue shine that follows the pointer around the cell edge. The fill stays untouched. */
-export function drawPointerGlow(properties: PointerGlowProperties): void {
-  const polygon = properties.polygon;
-  const spot = pointer;
-  if (!properties.hovered || properties.attribution || properties.description || properties.open || !polygon || polygon.length < 3 || !spot || !canDraw(properties.context)) {
-    return;
-  }
-  const box = boundsOf(polygon);
+function trace(ctx: GlowContext, polygon: GlowPoint[]): void {
   const first = polygon[0];
   if (!first) {
     return;
   }
-  const ctx = properties.context;
-  const radius = Math.max(56, Math.min(box.width, box.height) * 0.62);
-  const gradient = ctx.createRadialGradient(spot.x, spot.y, 0, spot.x, spot.y, radius);
-  gradient.addColorStop(0, "rgba(186, 230, 253, 0.98)");
-  gradient.addColorStop(0.28, "rgba(56, 189, 248, 0.9)");
-  gradient.addColorStop(0.55, "rgba(37, 99, 235, 0.45)");
-  gradient.addColorStop(1, "rgba(37, 99, 235, 0)");
-  ctx.save();
   ctx.beginPath();
   ctx.moveTo(first.x, first.y);
   for (let index = 1; index < polygon.length; index += 1) {
@@ -93,14 +64,31 @@ export function drawPointerGlow(properties: PointerGlowProperties): void {
     }
   }
   ctx.closePath();
+}
+
+/** Thin blue line on the cell edge. Brightest beside the pointer. The fill stays solid. */
+export function drawPointerGlow(properties: PointerGlowProperties): void {
+  const polygon = properties.polygon;
+  const spot = pointer;
+  if (!properties.hovered || properties.attribution || properties.description || properties.open || !polygon || polygon.length < 3 || !spot || !canDraw(properties.context)) {
+    return;
+  }
+  const ctx = properties.context;
+  let farthest = 1;
+  for (const point of polygon) {
+    farthest = Math.max(farthest, Math.hypot(point.x - spot.x, point.y - spot.y));
+  }
+  const shine = ctx.createRadialGradient(spot.x, spot.y, 0, spot.x, spot.y, farthest);
+  shine.addColorStop(0, "rgba(224, 242, 254, 1)");
+  shine.addColorStop(0.28, "rgba(96, 165, 250, 1)");
+  shine.addColorStop(1, "rgba(37, 99, 235, 0.72)");
+
+  ctx.save();
   ctx.lineJoin = "round";
-  ctx.lineWidth = Math.max(3, Math.min(box.width, box.height) * 0.012);
-  ctx.strokeStyle = gradient;
-  ctx.shadowColor = "rgba(56, 189, 248, 0.95)";
-  ctx.shadowBlur = 18;
-  ctx.stroke();
-  ctx.lineWidth = Math.max(1.4, ctx.lineWidth * 0.45);
   ctx.shadowBlur = 0;
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = shine;
+  trace(ctx, polygon);
   ctx.stroke();
   ctx.restore();
 }

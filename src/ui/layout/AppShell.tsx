@@ -45,7 +45,7 @@ export function AppShell(): JSX.Element {
       >
         <div className="app-backdrop-pattern" />
         <div className="app-backdrop-image">
-          <video className="app-backdrop-video" src="/1.mp4" autoPlay muted loop playsInline />
+          <video className="app-backdrop-video" src="/pr.mp4" autoPlay muted loop playsInline />
         </div>
       </div>
       <Toolbar onMenuIndex={setMenuIndex} />
