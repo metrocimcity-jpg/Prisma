@@ -34,6 +34,7 @@ export function AppShell(): JSX.Element {
   const background = config.visualization.style.stageBackground;
   const tone = stageTone(background);
   const showMap = Boolean(index) && !panels.analysis;
+  const foamMap = showMap && (config.visualization.renderer ?? "foamtree") === "foamtree";
 
   return (
     <div className="app-shell">
@@ -50,7 +51,7 @@ export function AppShell(): JSX.Element {
       <Toolbar onMenuIndex={setMenuIndex} />
       <div className="layout">
         {panels.filters ? <Sidebar /> : null}
-        <main className={`stage ${tone}`} style={{ background: showMap ? background : "transparent" }}>
+        <main className={`stage ${tone}`} style={{ background: showMap && !foamMap ? background : "transparent" }}>
           {panels.analysis ? <AnalysisSchedule /> : index ? <VizStage /> : <EmptyState />}
         </main>
         {panels.preview ? <PreviewPanel /> : null}

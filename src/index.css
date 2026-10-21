@@ -205,9 +205,9 @@ select {
 
 .app-backdrop-pattern {
   z-index: 1;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 5.5%, transparent 5.5%);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.338) calc(0.198vmin / sqrt(2)), transparent calc(0.198vmin / sqrt(2)));
   background-position: 0% 0%;
-  background-size: 6vmin 6vmin;
+  background-size: calc(6vmin / sqrt(2)) calc(6vmin / sqrt(2));
   transition:
     opacity 800ms ease,
     background-size 800ms ease,
@@ -228,7 +228,7 @@ select {
   transform: translate(-50%, -50%);
   object-fit: cover;
   object-position: center 46%;
-  opacity: 0.25;
+  opacity: 0.36;
   transition:
     width 800ms ease,
     height 800ms ease,
@@ -238,14 +238,14 @@ select {
 }
 
 .app-backdrop[data-hot] > .app-backdrop-pattern {
-  background-size: 5.5vmin 5.5vmin;
+  background-size: calc(5.5vmin / sqrt(2)) calc(5.5vmin / sqrt(2));
   opacity: 0.5;
 }
 
 .app-backdrop[data-hot] > .app-backdrop-image .app-backdrop-video {
   width: 100vmax;
   height: 100vmax;
-  opacity: 0.2;
+  opacity: 0.288;
 }
 
 .app-backdrop[data-active-index="0"] > .app-backdrop-pattern { background-position: 0% -25%; }
@@ -878,6 +878,36 @@ select {
   color: #fff;
 }
 
+.sidebar input[type="number"],
+.sidebar input[type="date"] {
+  height: 37px;
+  min-width: 0;
+}
+
+.sidebar input[type="date"]::-webkit-datetime-edit {
+  padding: 0;
+}
+
+.sidebar input[type="date"][value=""] {
+  color: rgb(117, 117, 117);
+  -webkit-text-fill-color: rgb(117, 117, 117);
+}
+
+.sidebar input[type="date"][value=""]::-webkit-datetime-edit,
+.sidebar input[type="date"][value=""]::-webkit-datetime-edit-text,
+.sidebar input[type="date"][value=""]::-webkit-datetime-edit-month-field,
+.sidebar input[type="date"][value=""]::-webkit-datetime-edit-day-field,
+.sidebar input[type="date"][value=""]::-webkit-datetime-edit-year-field {
+  color: rgb(117, 117, 117);
+  -webkit-text-fill-color: rgb(117, 117, 117);
+}
+
+.sidebar input[type="date"]::-webkit-calendar-picker-indicator {
+  margin-inline-start: 2px;
+  opacity: 0.65;
+  cursor: pointer;
+}
+
 .sidebar select {
   background: rgba(4, 13, 23, 0.55);
   border-color: rgba(255, 255, 255, 0.08);
@@ -885,8 +915,13 @@ select {
 }
 
 .sidebar input:focus,
-.sidebar select:focus {
+.sidebar input:focus-visible,
+.sidebar select:focus,
+.sidebar select:focus-visible {
+  outline: none;
   border-color: rgba(59, 130, 246, 0.45);
+  background: rgba(4, 13, 23, 0.75);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .sidebar-select {
@@ -997,7 +1032,23 @@ select {
 .sidebar .clear-filters,
 .sidebar .reset-link {
   color: #9db6d6;
-  border-color: rgba(255, 255, 255, 0.1);
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(4, 13, 23, 0.55);
+}
+
+.sidebar .clear-filters:hover,
+.sidebar .clear-filters:focus,
+.sidebar .clear-filters:focus-visible,
+.sidebar .reset-link:hover,
+.sidebar .reset-link:focus,
+.sidebar .reset-link:focus-visible {
+  outline: none;
+  transform: none;
+  color: #fff;
+  border-color: rgba(59, 130, 246, 0.45);
+  background: rgba(4, 13, 23, 0.75);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .sidebar button.primary {
@@ -1482,7 +1533,7 @@ input.search {
 }
 
 .empty-state {
-  --cell: 6vmin;
+  --cell: calc(6vmin / sqrt(2));
   position: fixed;
   z-index: 2;
   font-family: var(--font-display);
@@ -1731,6 +1782,17 @@ input.search {
   font-size: calc(var(--cell) * 0.23);
   font-weight: 500;
   line-height: 1;
+  transition: color 0.25s var(--sidebar-motion), border-color 0.25s var(--sidebar-motion), box-shadow 0.25s var(--sidebar-motion), background 0.25s var(--sidebar-motion);
+}
+
+.stage .empty-state .actions button:hover,
+.stage .empty-state .actions button:focus-visible {
+  outline: none;
+  transform: none;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.16), 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
 .stage .empty-state .actions button.primary {
@@ -1740,8 +1802,12 @@ input.search {
   box-shadow: 0 0 16px rgba(255, 180, 84, 0.28);
 }
 
-.stage .empty-state .actions button.primary:hover {
-  background: rgba(255, 180, 84, 0.12);
+.stage .empty-state .actions button.primary:hover,
+.stage .empty-state .actions button.primary:focus-visible {
+  color: #ffc878;
+  border-color: #ffc878;
+  background: rgba(255, 180, 84, 0.14);
+  box-shadow: 0 0 18px rgba(255, 180, 84, 0.48), 0 0 0 3px rgba(255, 180, 84, 0.16);
 }
 
 .stage-light .empty-state p,

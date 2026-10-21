@@ -1,8 +1,8 @@
 import { useLayoutEffect, useRef } from "react";
 import { actions } from "@/state/store";
 
-/** Dot grid is 6vmin tiles, with each dot centered in its tile. */
-const DOT_CELL = 0.06;
+/** Dot grid tiles are 6vmin / √2, with each dot centered in its tile. */
+const DOT_CELL = 0.06 / Math.SQRT2;
 
 export function EmptyState(): JSX.Element {
   const frameRef = useRef<HTMLDivElement>(null);

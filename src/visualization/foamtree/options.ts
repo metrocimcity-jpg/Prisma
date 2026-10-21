@@ -3,11 +3,12 @@ import type { VisualizationConfig } from "@/visualization/types";
 import type { FoamTreeOptions } from "@carrotsearch/foamtree";
 import { foamLayoutOptions } from "./dataObject";
 import type { PrismaFoamGroup } from "./dataObject";
-import { applyHoverColor, drawHoveredCell, type HoverDrawProperties } from "./hover";
+import type { HoverDrawProperties } from "./hover";
+import { drawPointerGlow, type PointerGlowProperties } from "./pointerGlow";
 
 export function foamTreeViewOptions(
   config: VisualizationConfig,
-  fallbackBackground: string,
+  _fallbackBackground: string,
 ): FoamTreeOptions {
   const style = config.style;
   const layout = foamLayoutOptions(config.layout);
@@ -20,7 +21,7 @@ export function foamTreeViewOptions(
     layoutByWeightOrder: style.layoutByWeightOrder,
     pixelRatio: typeof window === "undefined" ? 1 : window.devicePixelRatio || 1,
     wireframePixelRatio: 1,
-    backgroundColor: style.stageBackground || fallbackBackground,
+    backgroundColor: "rgba(0, 0, 0, 0)",
     groupFillType: style.groupFillType,
     groupStrokeType: style.groupStrokeType,
     groupBorderRadius: style.groupBorderRadius,
@@ -57,7 +58,7 @@ export function foamTreeViewOptions(
     descriptionGroupSize: style.descriptionGroupSize,
     descriptionGroupMaxHeight: style.descriptionGroupMaxHeight,
     attributionTheme: style.attributionTheme,
-    parentFillOpacity: style.parentFillOpacity,
+    parentFillOpacity: 1,
     parentLabelOpacity: style.parentLabelOpacity,
     parentStrokeOpacity: 1,
     groupSelectionOutlineWidth: style.groupSelectionOutlineWidth,
@@ -98,13 +99,12 @@ export function foamTreeViewOptions(
           variables.groupColor = FOLDER_FILL;
         }
       }
-      applyHoverColor(properties, variables);
     },
     groupContentDecorator: (
-      options: { stacking?: string },
+      _options: { stacking?: string },
       properties: HoverDrawProperties,
     ) => {
-      drawHoveredCell(options.stacking, properties);
+      drawPointerGlow(properties as PointerGlowProperties);
     },
     groupLabelDecorator: prismaColors
       ? (

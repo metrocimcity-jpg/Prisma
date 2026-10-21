@@ -2,6 +2,7 @@ import { actions, usePrisma } from "@/state/store";
 import { formatBytes } from "@/utils/format";
 import { findFoamGroupBySourceId, toFoamTreeData } from "@/visualization/foamtree/dataObject";
 import { setFoamTreeInstance } from "@/visualization/foamtree/host";
+import { clearCellPointer, setCellPointer } from "@/visualization/foamtree/pointerGlow";
 import { foamTreeViewOptions } from "@/visualization/foamtree/options";
 import type { PrismaFoamGroup } from "@/visualization/foamtree/dataObject";
 import { FoamTree, type FoamTreeEvent } from "@carrotsearch/foamtree";
@@ -100,7 +101,30 @@ export function FoamCanvas(): JSX.Element {
     });
     observer.observe(element);
 
+    let frame = 0;
+    const onPointerMove = (event: PointerEvent): void => {
+      const rect = element.getBoundingClientRect();
+      setCellPointer(event.clientX - rect.left, event.clientY - rect.top);
+      if (frame !== 0) {
+        return;
+      }
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        foamtree.redraw();
+      });
+    };
+    const onPointerLeave = (): void => {
+      clearCellPointer();
+      foamtree.redraw();
+    };
+    element.addEventListener("pointermove", onPointerMove);
+    element.addEventListener("pointerleave", onPointerLeave);
+
     return () => {
+      window.cancelAnimationFrame(frame);
+      element.removeEventListener("pointermove", onPointerMove);
+      element.removeEventListener("pointerleave", onPointerLeave);
+      clearCellPointer();
       observer.disconnect();
       foamtree.dispose();
       foamRef.current = null;
