@@ -1,10 +1,14 @@
 import { builtinPresets } from "@/config/presets";
+import { toggleGestures, useGestureStatus } from "@/gestures/gestureCamera";
+import { toggleVoice, useVoiceState } from "@/voice/voiceListener";
 import { actions, usePrisma } from "@/state/store";
 import { Breadcrumbs } from "@/ui/visualization/Breadcrumbs";
 import { useRef } from "react";
 
 export function Toolbar({ onMenuIndex }: { onMenuIndex: (index: number | null) => void }): JSX.Element {
   const { config, panels } = usePrisma();
+  const gesture = useGestureStatus();
+  const voice = useVoiceState();
   const moreRef = useRef<HTMLDetailsElement>(null);
 
   function runMore(action: () => void): void {
@@ -73,6 +77,26 @@ export function Toolbar({ onMenuIndex }: { onMenuIndex: (index: number | null) =
           onClick={() => actions.setPanel("settings", !panels.settings)}
         >
           Settings
+        </button>
+        <button
+          type="button"
+          className={gesture === "on" || gesture === "loading" ? "menu-item is-on" : "menu-item"}
+          title="Camera hand gestures: pinch to select, thumbs to zoom, palm to go back"
+          aria-pressed={gesture === "on"}
+          {...tabProps(7)}
+          onClick={() => toggleGestures()}
+        >
+          Camera
+        </button>
+        <button
+          type="button"
+          className={voice.status === "on" ? "menu-item is-on" : "menu-item"}
+          title="Voice commands. Say Prisma down to pause, Prisma to resume"
+          aria-pressed={voice.status === "on"}
+          {...tabProps(8)}
+          onClick={() => toggleVoice()}
+        >
+          Voice
         </button>
         <details className="more-menu menu-item" ref={moreRef} {...tabProps(6)}>
           <summary>

@@ -92,5 +92,6 @@ declare module "@carrotsearch/foamtree" {
     select(groups: unknown): Promise<unknown>;
     expose(groups: unknown): Promise<unknown>;
     open(groups: unknown): Promise<unknown>;
+    trigger(eventType: string, details: Record<string, unknown>): void;
   }
 }

@@ -10,6 +10,7 @@ import { Sidebar } from "@/ui/layout/Sidebar";
 import { StatusBar } from "@/ui/layout/StatusBar";
 import { Toolbar } from "@/ui/layout/Toolbar";
 import { VizStage } from "@/ui/visualization/VizStage";
+import { VoiceOverlay } from "@/ui/visualization/VoiceOverlay";
 import { usePrisma } from "@/state/store";
 import { useState } from "react";
 
@@ -53,6 +54,7 @@ export function AppShell(): JSX.Element {
         {panels.filters ? <Sidebar /> : null}
         <main className={`stage ${tone}`} style={{ background: showMap && !foamMap ? background : "transparent" }}>
           {panels.analysis ? <AnalysisSchedule /> : index ? <VizStage /> : <EmptyState />}
+          <VoiceOverlay />
         </main>
         {panels.preview ? <PreviewPanel /> : null}
         {panels.settings ? <SettingsDialog /> : null}

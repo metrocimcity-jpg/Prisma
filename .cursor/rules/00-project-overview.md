@@ -18,6 +18,7 @@ The application must:
 - **Merge folder** / **Merge JSON** for multi-batch ACC or local trees.
 - Visualize folders/files with FoamTree (relaxed / squarified / flattened stacking).
 - Support search, filtering, grouping (including ACC taxonomy levels), coloring, sizing, drill-down, and details.
+- Voice commands start when Voice is on and pause on “Prisma down” (open a cell the way a double-click does, select every cell, back, reset, filter). “Prisma” resumes them.
 - Provide a FoamTree **Settings** panel with color and style presets.
 - Provide **Analysis** charts for the focused / open folder scope (bubble + line).
 - Provide **Preview** for selected PDF, IFC (3D), image, video, audio, and text files.

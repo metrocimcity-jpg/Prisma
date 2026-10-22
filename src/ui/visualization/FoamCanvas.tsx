@@ -1,7 +1,10 @@
+import { applyFoamGesture, setGestureTarget } from "@/gestures/applyFoamGesture";
+import { setGestureCommandHandler } from "@/gestures/gestureCamera";
 import { actions, usePrisma } from "@/state/store";
+import { GestureOverlay } from "@/ui/visualization/GestureOverlay";
 import { formatBytes } from "@/utils/format";
 import { findFoamGroupBySourceId, toFoamTreeData } from "@/visualization/foamtree/dataObject";
-import { setFoamTreeInstance } from "@/visualization/foamtree/host";
+import { isFoamSelectionPreserved, setFoamTreeInstance } from "@/visualization/foamtree/host";
 import { clearCellPointer, setCellPointer } from "@/visualization/foamtree/pointerGlow";
 import { foamTreeViewOptions } from "@/visualization/foamtree/options";
 import type { PrismaFoamGroup } from "@/visualization/foamtree/dataObject";
@@ -20,7 +23,12 @@ function sourceIdFrom(group: PrismaFoamGroup | undefined): string | null {
 function foamInteractionOptions() {
   return {
     onGroupClick: (event: FoamTreeEvent) => {
-      actions.select(sourceIdFrom(event.group as PrismaFoamGroup | undefined));
+      const group = event.group as PrismaFoamGroup | undefined;
+      if (group?.attribution === true) {
+        event.preventDefault?.();
+        return;
+      }
+      actions.select(sourceIdFrom(group));
     },
     onGroupDoubleClick: (event: FoamTreeEvent) => {
       const group = event.group as PrismaFoamGroup | undefined;
@@ -40,7 +48,11 @@ function foamInteractionOptions() {
       void actions.openNode(id);
     },
     onGroupHover(this: FoamTree | void, event: FoamTreeEvent) {
-      actions.hover(event.group ? String((event.group as PrismaFoamGroup).id) : null);
+      const hit = (event.group as PrismaFoamGroup | undefined) ?? null;
+      const parent = (event.parent as PrismaFoamGroup | undefined) ?? null;
+      const group = hit?.attribution === true || hit?.description === true ? parent : hit;
+      setGestureTarget(group?.attribution === true || group?.description === true ? null : group);
+      actions.hover(group ? String(group.id) : null);
       const foam = this;
       if (!foam || typeof foam.redraw !== "function") {
         return;
@@ -119,8 +131,10 @@ export function FoamCanvas(): JSX.Element {
     };
     element.addEventListener("pointermove", onPointerMove);
     element.addEventListener("pointerleave", onPointerLeave);
+    setGestureCommandHandler((command) => applyFoamGesture(command, element));
 
     return () => {
+      setGestureCommandHandler(null);
       window.cancelAnimationFrame(frame);
       element.removeEventListener("pointermove", onPointerMove);
       element.removeEventListener("pointerleave", onPointerLeave);
@@ -164,7 +178,7 @@ export function FoamCanvas(): JSX.Element {
 
   useEffect(() => {
     const foamtree = foamRef.current;
-    if (!foamtree) {
+    if (!foamtree || isFoamSelectionPreserved()) {
       return;
     }
     if (selectedId === null) {
@@ -178,5 +192,10 @@ export function FoamCanvas(): JSX.Element {
     }
   }, [selectedId]);
 
-  return <div className="viz-stage foamtree-host" ref={hostRef} />;
+  return (
+    <>
+      <div className="viz-stage foamtree-host" ref={hostRef} />
+      <GestureOverlay hostRef={hostRef} />
+    </>
+  );
 }

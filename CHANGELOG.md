@@ -2,6 +2,8 @@
 
 ## 0.4.0
 
+- Camera hand gestures on the FoamTree stage: pinch to select and pan, double pinch to open a cell, thumbs to zoom, open palm to go back, fist to reset, victory to open the selected file.
+- Voice commands start when **Voice** is on and pause on **Prisma down**. While on: open a cell by name (same as a double-click), select every cell, back, reset, and filter. **Prisma** resumes them.
 - Analysis panel: folder-scoped bubble (age / subprogram / size) and line charts.
 - Preview panel: PDF (`pdfjs-dist`), IFC (`web-ifc` + Three.js), and media/text stages for selected files.
 - Left sidebar rail shows **one panel per icon** (Search+Filters, View, Overview, File Identity); More menu closes after a submenu choice.

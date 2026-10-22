@@ -5,3 +5,4 @@ dist
 Thumbs.db
 node_modules/.tmp
 *.tsbuildinfo
+3D/
