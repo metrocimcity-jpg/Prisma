@@ -36,6 +36,7 @@ src/
   scanner/         filesystem traversal
   data/            schema, aggregation, JSON index
   metadata/        classification, ACC taxonomy, metadata providers
+  acc/             ACC auth, link resolve, saved attribute sheets
   sharepoint/      Graph auth + drive import
   visualization/   grouping, color/size mappers, FoamTree adapter
     foamtree/      dataObject, options, settingsSchema, stylePresets, host
@@ -54,6 +55,7 @@ The JSON index is a first-class artifact. Visualization never requires a live re
 
 - Node.js 20+
 - Chrome or Edge for folder scanning (File System Access API)
+- Chrome for **Camera** and **Voice** (MediaPipe hand tracking and the Web Speech API)
 
 ## Install
 
@@ -154,8 +156,14 @@ Load this file later with **Open JSON**. Workspaces (`prisma.workspace.json`) st
 ## UI layout
 
 ```text
-Top bar → crumb bar → [ sidebar rail + one section | FoamTree / Analysis | Preview | Settings ] → status bar
+Top bar (Prisma + path, then commands)
+  → [ sidebar rail + one section | FoamTree, Analysis, Preview, or Settings ]
+  → status bar
 ```
+
+The map sits on a looping backdrop. Space between cells stays clear, and the cell under the pointer gets a blue edge. The path (`all files › BIM › …`) is in the top bar beside the Prisma name, not on its own row.
+
+**Camera** opens a card at the bottom-right. **Voice** opens a card at the bottom-left.
 
 ### Top bar
 
@@ -165,18 +173,18 @@ Sample data · Load folder · Merge folder · Analysis · Preview · Settings ·
 
 ### Left sidebar
 
-Icon rail is always available. Each icon shows **only** its panel:
+The icon rail stays up. Each icon shows **only** its panel:
 
 | Icon | Panel |
 | --- | --- |
 | Search | Search box + Filters |
-| View | Group by, hierarchy, color by, display stacking |
+| Structure | Group by, hierarchy, color by, display stacking |
 | Overview | Scope totals and top types |
 | File Identity | Selection details |
 
 ## Configuration
 
-- **View panel:** Group By (including ACC taxonomy levels), Color By, Multi-Level Hierarchy, Display (flattened / hierarchical)
+- **Structure panel:** Group By (including ACC taxonomy levels), Color By, Multi-Level Hierarchy, Display (flattened / hierarchical)
 - **Settings panel:** FoamTree options with live updates; Presets (Appearance, Color, Borders & fill, Layout, Animation); export settings JSON
 - **Analysis presets (More):** Disk Prisma, BIM, CAD, Large Files, Recently Modified, Engineering, Archive
 

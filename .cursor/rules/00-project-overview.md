@@ -41,7 +41,7 @@ The application is not merely a colorful file manager. It is a visual filesystem
 2. Scan recursively with progress (or merge additional batches).
 3. Generate / export `<root>.index.json`.
 4. Visualize indexed data with FoamTree.
-5. Use sidebar rail sections: Search+Filters, View, Overview, File Identity (one at a time).
+5. Use sidebar rail sections: Search+Filters, Structure, Overview, File Identity (one at a time).
 6. Search / filter / group / color / size; apply ACC group-by when taxonomy is present.
 7. Open **Analysis** for folder-scoped charts; **Preview** for the selected file.
 8. Tune FoamTree options in Settings; apply style / analysis presets (More closes after pick).
