@@ -53,5 +53,27 @@ describe("prisma API", () => {
     );
     expect(state.vizTree?.children.every((child) => child.nodeType === "file")).toBe(true);
   });
+
+  it("exposes multi-ask, parse, clear, and pin helpers", () => {
+    const api = createPrismaApi();
+    expect(api.splitAsk("3 newer revit / last month pdfs")).toEqual(["3 newer revit", "last month pdfs"]);
+    const intent = api.parseAsk("Architectural revit models");
+    expect(intent.extensions).toContain("rvt");
+    expect(intent.metadataFilters.length).toBeGreaterThan(0);
+
+    const multi = api.askMany(["3 newer revit", "last month pdfs"]);
+    expect(multi.parts).toHaveLength(2);
+    expect(multi.hits.length).toBeGreaterThan(0);
+    expect(api.getAsk().hitIds.length).toBe(multi.hits.length);
+    expect(api.listAskHits().length).toBe(multi.hits.length);
+
+    api.clearAsk();
+    expect(api.getAsk()).toEqual({ ask: "", hitIds: [], hits: [] });
+
+    const file = api.findFile("Airfield-Terminal.rvt");
+    expect(file).toBeTruthy();
+    api.pinAskHits("pinned", [file!.id]);
+    expect(api.getAsk().hitIds).toEqual([file!.id]);
+  });
 });
 

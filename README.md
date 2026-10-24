@@ -18,7 +18,7 @@ The visualization uses the `@carrotsearch/foamtree` package (demo distribution).
 | **Analysis** | Folder-scoped bubble chart (age / subprogram / size) and line chart |
 | **Preview** | PDF, IFC (3D), image, video, audio, text for the selected file |
 | **Hands & voice** | Camera gestures and spoken commands (Chrome). See [Hands and voice](#hands-and-voice) |
-| **Ask / API** | Natural-language file ask over the loaded JSON index, plus `window.prisma` for scripts. See [Ask Prisma](#ask-prisma) |
+| **Ask / API** | Natural-language Ask Prisma (multi-ask, dates, ACC metadata) + `window.prisma`. See [Ask Prisma](#ask-prisma) and the [semantic search & API manual](docs/readme/semantic-search-and-api.md) |
 | **Export** | JSON index, CSV, workspace view state |
 
 ## Default look vs Disk Prisma
@@ -117,8 +117,9 @@ Use Chrome. **Camera** asks for the webcam. **Voice** asks for the microphone an
 | **Prisma down** | Pause commands. The microphone stays on |
 | **Select BIM** | Open that cell, the same as a double-click. A folder zooms open; a file opens |
 | **Select every cell** | Select every cell in the current view |
-| **Back** | Go up one level |
-| **Reset** | Return to the full map |
+| **Ask …** / **Find …** / full NL ask | Run Ask Prisma semantic search on the map |
+| **Back** | Leave Ask Prisma (restore prior map) or go up one level |
+| **Reset** | Clear Ask Prisma and return to the full map |
 | **Filter images**, **Filter pdf**, **Filter rvt** | Filter by category, type, or extension |
 | **Clear filters** | Clear the filter and the search |
 
@@ -126,19 +127,25 @@ A phrase can include the wake word, for example **Prisma back**. The bottom-left
 
 ## Ask Prisma
 
-The Search sidebar includes **Ask Prisma**: a natural-language box that ranks files from the loaded JSON index (name, path, extension, category, size, modified date, and metadata).
+The Search sidebar includes **Ask Prisma**: natural language over the loaded JSON index (name, path, extension, dates, counts, and JSON/ACC metadata). Hits are pinned as adjacent FoamTree cells. Esc / Backspace restores the prior map.
 
-Example:
+Examples:
 
 ```text
 all revit models for airfield location for last month
+3 newer revit / last month pdfs / two weeks ago dwg
+Architectural revit models
+electrical revit models
+ACC-Discipline=ELE7
 ```
 
-That ask keeps every `.rvt` whose path or metadata mentions the airfield and that was modified in the last 30 days, selects the top match, and filters the map.
+Voice: **ask …**, **find …**, or a full ask sentence. Mic / **Speak to map** dictate into the Ask box.
+
+Full phrase cookbook, metadata fields, map behavior, and API reference: **[Semantic search & API manual](docs/readme/semantic-search-and-api.md)**.
 
 ### `window.prisma` API
 
-After the app loads in Chrome, `window.prisma` drives the original explorer (map, filters, panels, load/export, camera, voice).
+After the app loads in Chrome, `window.prisma` drives the explorer (map, Ask Prisma, filters, panels, load/export, camera, voice).
 
 ```js
 prisma.loadSample()
@@ -150,38 +157,39 @@ prisma.open("Airfield-Terminal.rvt")
 prisma.back()
 prisma.reset()
 prisma.selectAll()
-prisma.zoomIn()
-prisma.zoomOut()
 
-// Filters
-prisma.filterCategory("BIM")
-prisma.filterExtension("rvt")
-prisma.filterByQuery("images")
-prisma.clearFilters()
+// Ask Prisma (semantic)
+prisma.ask("3 newer revit / last month pdfs")
+prisma.askMany(["electrical revit models", "drawings runway 05"])
+prisma.parseAsk("Architectural revit models")
+prisma.getAsk()
+prisma.clearAsk()
 
-// Search + natural language
+// Classic search + filters
 prisma.search("ext:rvt Architecture")
-prisma.ask("all revit models for airfield location for last month")
-prisma.getSelected()?.name
+prisma.filterExtension("rvt")
+prisma.clearFilters()
 
 // Panels
 prisma.showPreview()
 prisma.showAnalysis()
 prisma.showSettings()
-prisma.showFilters()
 ```
 
 | Area | Methods |
 | --- | --- |
 | **State** | `getIndex`, `getState`, `subscribe`, `getSelected`, `getHovered`, `listFiles`, `listVisible`, `findFile` |
 | **Load / export** | `loadSample`, `loadIndex`, `openFolder`, `openJson`, `mergeFolder`, `mergeJson`, `exportJson`, `exportCsv`, `exportWorkspace`, `cancelScan` |
-| **Search** | `search`, `clearSearch`, `ask`, `previewAsk`, `getFavorite` |
+| **Search** | `search`, `clearSearch` |
+| **Ask Prisma** | `ask`, `askMany`, `previewAsk`, `parseAsk`, `splitAsk`, `getFavorite`, `getAsk`, `listAskHits`, `clearAsk`, `pinAskHits` |
 | **Filters** | `filterCategory`, `filterExtension`, `filterCategories`, `filterByQuery`, `setFilters`, `patchFilters`, `clearFilters`, `emptyFilters` |
 | **Map / cells** | `click`, `select`, `selectByName`, `selectAll`, `open`, `openSelected`, `doubleClick`, `hover`, `back`, `reset`, `drillInto`, `setFocusPath`, `zoomIn`, `zoomOut`, `getFoamTree` |
 | **Panels** | `showFilters`, `hideFilters`, `toggleFilters`, `showPreview`, `hidePreview`, `showAnalysis`, `hideAnalysis`, `showSettings`, `hideSettings`, `showCommands`, `setPanel` |
 | **View** | `setTheme`, `setGroupBy`, `setColorBy`, `patchVisualization`, `patchStyle`, `applyPreset`, `applyStylePreset`, `resetVisualization` |
 | **Camera / voice** | `startCamera`, `stopCamera`, `toggleCamera`, `cameraStatus`, `startVoice`, `stopVoice`, `toggleVoice`, `voiceStatus` |
 | **ACC / SharePoint** | `resolveAccLinks`, `signInAcc`, `signOutAcc`, `openSharePointBrowser` |
+
+See also the [semantic search & API manual](docs/readme/semantic-search-and-api.md).
 
 ## Build
 
@@ -274,6 +282,8 @@ name:harbor AND path:BIM
 | Ctrl+R | Rescan / open folder |
 | Esc | Close overlay / leave Ask Prisma (restore prior map) / clear selection / navigate up |
 | Backspace | Leave Ask Prisma (restore prior map) / navigate back |
+
+Ask Prisma details: [semantic search & API manual](docs/readme/semantic-search-and-api.md).
 | Enter | Open selected file |
 
 ## Tests

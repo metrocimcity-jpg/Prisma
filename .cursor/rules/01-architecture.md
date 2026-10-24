@@ -14,7 +14,9 @@ sharepoint/        auth, Graph, drive import
 visualization/
   foamtree/        FoamTree adapter, options, settings schema, style presets, host
 filtering/
-search/
+search/            field SearchEngine + semanticIntent / semanticMetadata / semanticSearch
+api/               window.prisma (ask, askMany, parseAsk, clearAsk, map, filters, …)
+voice/             spoken commands including Ask Prisma
 ui/
   layout/          Sidebar rail, Analysis, Preview (PDF/IFC/media), Toolbar, StatusBar
   dialogs/         Settings, command palette, SharePoint browser, scan progress
@@ -46,9 +48,9 @@ Rendering of cells is FoamTree’s job. Prisma only:
 - maps config → FoamTree options
 - hosts the FoamTree instance in the UI
 
-### Filtering / Search
+### Filtering / Search / Ask Prisma
 
-Pure filter definitions and execution; search indexing, parsing, fuzzy matching.
+Pure filter definitions and execution; classic field search; natural-language Ask Prisma (`semanticIntent`, index/ACC `semanticMetadata`, `semanticSearch` multi-ask + fallback). `api/prismaApi.ts` exposes `window.prisma` including ask helpers. Ask pins use store `semanticHitIds` and a temporary FoamTree sibling layout.
 
 ### UI
 

@@ -1,6 +1,6 @@
 # Search and Filtering Rules
 
-## Search
+## Classic search
 
 Search must support:
 
@@ -35,6 +35,27 @@ path:project
 ```
 
 Support AND/OR where practical.
+
+## Ask Prisma (semantic)
+
+Natural language over the **loaded JSON index** (not a live disk crawl).
+
+Capabilities agents must preserve:
+
+- Counts / recency: `3 newer revit`, `top five pdfs`, word counts (`three`)
+- Dates: today, yesterday, last/this week|month|year, `last 2 weeks`, `two weeks ago`, word amounts
+- Multi-ask: join with `/` `|` `;` or newlines; UI chips toggle parts
+- Metadata: sample `discipline` and ACC fields from indexes like `AE.index.json` (`ACC-Discipline`, `ACC-Location`, `ACC-Document Type`, portfolio/program/subprogram/originator); explicit `key=value`
+- Map: pin hits as **adjacent FoamTree siblings**; Esc / Backspace / `clearAsk` / voice Back restore prior view snapshot
+- Empty asks: return unrelated **sample** hits with `usedFallback` rather than an empty map
+- Voice: ask/find/show-me routes; Ask box mic dictation
+- API: `ask`, `askMany`, `previewAsk`, `parseAsk`, `splitAsk`, `getAsk`, `listAskHits`, `clearAsk`, `pinAskHits` on `window.prisma`
+
+Modules: `src/search/semanticIntent.ts`, `semanticMetadata.ts`, `semanticSearch.ts`, `src/api/prismaApi.ts`, `src/ui/layout/SemanticSearchBox.tsx`.
+
+Manual for humans/agents: `docs/readme/semantic-search-and-api.md`.
+
+Do not apply classic keyword `search` as an AND filter when pinning Ask hits — Ask owns the temporary viz tree.
 
 ## Filters
 

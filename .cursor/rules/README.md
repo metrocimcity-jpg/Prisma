@@ -1,6 +1,8 @@
 # Cursor Rules Index
 
-Read these rules before implementing features. They describe the **0.4.x** product: FoamTree explorer, Analysis, Preview, ACC/SharePoint, and sidebar rail UX.
+Read these rules before implementing features. They describe the **0.4.x** product: FoamTree explorer, Ask Prisma semantic search, Analysis, Preview, ACC/SharePoint, and sidebar rail UX.
+
+Human/API manual for Ask Prisma: `docs/readme/semantic-search-and-api.md`.
 
 - `00-project-overview.md` — mission, capabilities, primary workflow
 - `01-architecture.md` — modular layout (foamtree, preview, sharepoint, analysis)
@@ -9,7 +11,7 @@ Read these rules before implementing features. They describe the **0.4.x** produ
 - `04-scanner.md` — filesystem scanning
 - `05-metadata-and-classification.md` — metadata providers, ACC taxonomy
 - `06-visualization.md` — FoamTree adapter, layouts, color models, branding strip
-- `07-search-and-filtering.md` — search and filters
+- `07-search-and-filtering.md` — classic search, filters, and Ask Prisma semantic rules
 - `08-ui-ux.md` — chrome, sidebar rail (one panel per icon), Analysis, Preview, More menu
 - `09-design-system.md` — tokens, palettes, FoamTree style model
 - `10-performance.md` — large dataset performance
@@ -32,3 +34,4 @@ Read these rules before implementing features. They describe the **0.4.x** produ
 6. Left sidebar rail shows **one section at a time**; More menu closes after a submenu choice.
 7. Analysis and Preview are first-class stage/side panels (not buried only in Settings).
 8. Merge folder/JSON, ACC taxonomy group-by, SharePoint browse, and ACC link resolve are supported workflows.
+9. Ask Prisma pins NL/metadata hits on a temporary FoamTree; Esc/Backspace/`clearAsk` restore the prior map; `window.prisma` exposes `ask` / `askMany` / `parseAsk` / `clearAsk`.

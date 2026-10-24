@@ -52,9 +52,19 @@ Ctrl+Shift+O   Open JSON
 Ctrl+F         Focus Search section (open sidebar if needed)
 Ctrl+K         Command Palette
 Ctrl+R         Rescan / Open Folder
-Esc            Close palette → Analysis → Preview → Settings → clear / up
-Backspace      Navigate back
+Esc            Close palette → Analysis → Preview → Settings → leave Ask Prisma → clear / up
+Backspace      Leave Ask Prisma (restore prior map) / navigate back
 Enter          Open selected item
 ```
+
+## Ask Prisma / voice
+
+```text
+Ask Prisma box     NL ask, chips, mic, Speak to map, multi-ask with /
+ask / find / show me …   Voice → semantic search on FoamTree
+Esc / Backspace / back   Restore map from before the ask
+```
+
+Manual: `docs/readme/semantic-search-and-api.md`.
 
 Do not override browser/OS shortcuts unless there is a clear product reason.

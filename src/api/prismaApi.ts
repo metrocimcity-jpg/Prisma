@@ -6,13 +6,13 @@ import { resolveFilter } from "@/voice/resolveFilter";
 import { defaultSearchEngine, type SearchHit } from "@/search/SearchEngine";
 import {
   intentToSearchQuery,
-  searchSemantic,
   searchSemanticMany,
   splitSemanticAsks,
   type SemanticHit,
   type SemanticSearchResult,
 } from "@/search/semanticSearch";
 import { parseSemanticIntent, type SemanticIntent } from "@/search/semanticIntent";
+import { enrichIntentWithIndexMetadata } from "@/search/semanticMetadata";
 import { actions, getState, subscribe, type PrismaState } from "@/state/store";
 import type { AppConfig, SavedPreset } from "@/config/defaults";
 import type { GroupLevel } from "@/visualization/types";
@@ -23,6 +23,14 @@ import { toggleVoice, getVoiceState, stopVoice, startVoice } from "@/voice/voice
 export interface PrismaAskResult extends SemanticSearchResult {
   /** Classic field search applied to the map from the same ask. */
   appliedSearch: string;
+  /** Individual asks when the input used `/` multi-search. */
+  parts: string[];
+}
+
+export interface PrismaAskState {
+  ask: string;
+  hitIds: string[];
+  hits: IndexNode[];
 }
 
 export interface PrismaApi {
@@ -51,9 +59,26 @@ export interface PrismaApi {
   // —— Search ——
   search: (query: string) => SearchHit[];
   clearSearch: () => void;
+
+  // —— Ask Prisma (semantic) ——
+  /** Rank + pin hits on a temporary FoamTree (supports multi-ask with `/`). */
   ask: (text: string) => PrismaAskResult;
+  /** Same as ask, but join several phrases with `/` first. */
+  askMany: (parts: string[]) => PrismaAskResult;
+  /** Rank without changing the map. */
   previewAsk: (text: string) => SemanticSearchResult;
+  /** Parse NL intent (with index metadata enrichment when an index is loaded). */
+  parseAsk: (text: string) => SemanticIntent;
+  /** Split a multi-ask string on `/`, `|`, `;`, or newlines. */
+  splitAsk: (text: string) => string[];
   getFavorite: (text: string) => IndexNode | null;
+  /** Current Ask Prisma pin on the map (empty when cleared). */
+  getAsk: () => PrismaAskState;
+  listAskHits: () => IndexNode[];
+  /** Leave Ask Prisma and restore the map from before the ask. */
+  clearAsk: () => void;
+  /** Pin arbitrary file ids as Ask results (adjacent FoamTree siblings). */
+  pinAskHits: (ask: string, hitIds: string[]) => void;
 
   // —— Filters ——
   setFilters: (filters: FilterState) => void;
@@ -163,6 +188,31 @@ function applyCategoryFilter(categories: string[]): FilterState {
 }
 
 export function createPrismaApi(): PrismaApi {
+  function runAsk(text: string): PrismaAskResult {
+    const result = searchSemanticMany(getState().index, text);
+    const parts = splitSemanticAsks(text);
+    const appliedSearch = parts
+      .map((part) => intentToSearchQuery(parseSemanticIntent(part)))
+      .filter(Boolean)
+      .join(" · ");
+    const hitIds = result.hits.map((hit) => hit.id);
+    const label = parts.length > 1 ? parts.join(" · ") : text.trim();
+    // Temporary FoamTree JSON: hit files as adjacent siblings (do not apply keyword search/filters).
+    actions.setSemanticHits(label, hitIds);
+    return { ...result, appliedSearch, parts };
+  }
+
+  function currentAsk(): PrismaAskState {
+    const { index, semanticAsk, semanticHitIds } = getState();
+    const hits =
+      index === null
+        ? []
+        : semanticHitIds
+            .map((id) => index.items.find((item) => item.id === id))
+            .filter((item): item is IndexNode => Boolean(item));
+    return { ask: semanticAsk, hitIds: [...semanticHitIds], hits };
+  }
+
   return {
     getIndex: () => getState().index,
     getState,
@@ -204,18 +254,27 @@ export function createPrismaApi(): PrismaApi {
     previewAsk(text: string): SemanticSearchResult {
       return searchSemanticMany(getState().index, text);
     },
-    ask(text: string): PrismaAskResult {
-      const result = searchSemanticMany(getState().index, text);
-      const parts = splitSemanticAsks(text);
-      const appliedSearch = parts.map((part) => intentToSearchQuery(parseSemanticIntent(part))).filter(Boolean).join(" · ");
-      const hitIds = result.hits.map((hit) => hit.id);
-      const label = parts.length > 1 ? parts.join(" · ") : text.trim();
-      // Temporary FoamTree JSON: hit files as adjacent siblings (do not apply keyword search/filters).
-      actions.setSemanticHits(label, hitIds);
-      return { ...result, appliedSearch };
+    ask: runAsk,
+    askMany(parts: string[]): PrismaAskResult {
+      const cleaned = parts.map((part) => part.trim()).filter(Boolean);
+      return runAsk(cleaned.join(" / "));
     },
+    parseAsk(text: string): SemanticIntent {
+      const intent = parseSemanticIntent(text);
+      const index = getState().index;
+      return index ? enrichIntentWithIndexMetadata(intent, index, text) : intent;
+    },
+    splitAsk: splitSemanticAsks,
     getFavorite(text: string): IndexNode | null {
       return searchSemanticMany(getState().index, text).favorite;
+    },
+    getAsk: currentAsk,
+    listAskHits: () => currentAsk().hits,
+    clearAsk(): void {
+      actions.clearSemanticHits();
+    },
+    pinAskHits(ask: string, hitIds: string[]): void {
+      actions.setSemanticHits(ask.trim(), hitIds);
     },
 
     setFilters: (filters) => actions.setFilters(filters),

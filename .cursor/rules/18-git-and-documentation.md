@@ -37,11 +37,13 @@ Update documentation **and** `.cursor/rules/` when:
 Keep these in sync with the product:
 
 - `README.md` — capabilities table, workflow, UI layout, shortcuts
+- `docs/readme/semantic-search-and-api.md` — Ask Prisma phrase cookbook + `window.prisma` semantic API
 - `CHANGELOG.md` — significant user-visible changes
 - `.cursor/rules/README.md` — index + product decisions
 - `.cursor/rules/00-project-overview.md` — mission, capabilities, workflow
 - `.cursor/rules/01-architecture.md` — module map
 - `.cursor/rules/06-visualization.md` — FoamTree adapter + branding
+- `.cursor/rules/07-search-and-filtering.md` — classic search + Ask Prisma semantic rules
 - `.cursor/rules/08-ui-ux.md` — chrome and panel UX
 - `.cursor/rules/13-cursor-workflow.md` — agent implementation workflow
 - `.cursor/rules/15-config-and-presets.md` — presets

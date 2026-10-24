@@ -18,9 +18,9 @@ The application must:
 - **Merge folder** / **Merge JSON** for multi-batch ACC or local trees.
 - Visualize folders/files with FoamTree (relaxed / squarified / flattened stacking).
 - Support search, filtering, grouping (including ACC taxonomy levels), coloring, sizing, drill-down, and details.
-- Voice commands start when Voice is on and pause on “Prisma down” (open a cell the way a double-click does, select every cell, back, reset, filter). “Prisma” resumes them.
-- Natural-language Ask Prisma over the loaded JSON index.
-- `window.prisma` API to drive the original app from scripts (click/open cells, back/reset, filters, search/ask, panels, load/export, camera, voice).
+- Voice commands start when Voice is on and pause on “Prisma down” (open a cell the way a double-click does, select every cell, ask/find NL search, back, reset, filter). “Prisma” resumes them.
+- Natural-language **Ask Prisma** over the loaded JSON index: counts/recency, named dates, multi-ask (`/`), JSON/ACC metadata, FoamTree pin + Esc/Backspace restore, sample fallback when empty. Manual: `docs/readme/semantic-search-and-api.md`.
+- `window.prisma` API to drive the original app from scripts (click/open cells, back/reset, filters, `ask` / `askMany` / `parseAsk` / `clearAsk`, panels, load/export, camera, voice).
 - Provide a FoamTree **Settings** panel with color and style presets.
 - Provide **Analysis** charts for the focused / open folder scope (bubble + line).
 - Provide **Preview** for selected PDF, IFC (3D), image, video, audio, and text files.
@@ -43,8 +43,8 @@ The application is not merely a colorful file manager. It is a visual filesystem
 2. Scan recursively with progress (or merge additional batches).
 3. Generate / export `<root>.index.json`.
 4. Visualize indexed data with FoamTree.
-5. Use sidebar rail sections: Search+Filters, Structure, Overview, File Identity (one at a time).
-6. Search / filter / group / color / size; apply ACC group-by when taxonomy is present.
+5. Use sidebar rail sections: Search+Filters (includes Ask Prisma), Structure, Overview, File Identity (one at a time).
+6. Search / Ask Prisma / filter / group / color / size; apply ACC group-by when taxonomy is present.
 7. Open **Analysis** for folder-scoped charts; **Preview** for the selected file.
 8. Tune FoamTree options in Settings; apply style / analysis presets (More closes after pick).
 9. Save visualization / workspace configuration.
