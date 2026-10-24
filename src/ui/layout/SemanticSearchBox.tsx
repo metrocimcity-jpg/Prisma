@@ -8,7 +8,12 @@ import {
 } from "@/voice/askDictation";
 import { useEffect, useState } from "react";
 
-const EXAMPLE = "all revit models for airfield location for last month";
+const EXAMPLES = [
+  "all revit models for airfield location for last month",
+  "3 newer revit models",
+  "last month pdfs",
+] as const;
+const EXAMPLE = EXAMPLES[0];
 
 const api = createPrismaApi();
 
@@ -66,7 +71,7 @@ export function SemanticSearchBox(): JSX.Element {
     <div className="semantic-ask">
       <div className="semantic-ask-head">
         <h3>Ask Prisma</h3>
-        <span className="semantic-ask-hint">Natural language over the loaded JSON index</span>
+        <span className="semantic-ask-hint">e.g. “3 newer revit”, “last month pdfs”, “two weeks ago dwg”</span>
       </div>
       <div className={`semantic-ask-field${dictation === "listening" ? " is-listening" : ""}`}>
         <label className="sr-only" htmlFor="semantic-ask-input">
@@ -118,8 +123,10 @@ export function SemanticSearchBox(): JSX.Element {
           type="button"
           className="semantic-ask-example"
           onClick={() => {
-            setAsk(EXAMPLE);
-            runAsk(EXAMPLE);
+            const current = EXAMPLES.indexOf(ask as (typeof EXAMPLES)[number]);
+            const next = EXAMPLES[(current + 1) % EXAMPLES.length] ?? EXAMPLES[0];
+            setAsk(next);
+            runAsk(next);
           }}
         >
           Try example

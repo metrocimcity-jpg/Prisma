@@ -35,7 +35,9 @@ export function looksLikeSemanticAsk(text: string): boolean {
     intent.documentTypes.length > 0 ||
     intent.sizeBand !== null ||
     intent.sizeMaxBytes !== null ||
-    intent.sizeMinBytes !== null
+    intent.sizeMinBytes !== null ||
+    intent.limit !== null ||
+    intent.recencySort !== null
   ) {
     return true;
   }

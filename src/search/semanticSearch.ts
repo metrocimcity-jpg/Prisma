@@ -35,12 +35,33 @@ export function searchSemantic(index: FileIndex | null | undefined, ask: string)
     }
     hits.push({ id: node.id, score: scored.score, reasons: scored.reasons, node });
   }
-  hits.sort((left, right) => right.score - left.score || left.node.name.localeCompare(right.node.name));
+  hits.sort((left, right) => compareHits(left, right, intent));
+  const limited = intent.limit !== null ? hits.slice(0, intent.limit) : hits;
   return {
     intent,
-    hits,
-    favorite: hits[0]?.node ?? null,
+    hits: limited,
+    favorite: limited[0]?.node ?? null,
   };
+}
+
+function compareHits(left: SemanticHit, right: SemanticHit, intent: SemanticIntent): number {
+  if (intent.recencySort) {
+    const leftTime = modifiedTime(left.node);
+    const rightTime = modifiedTime(right.node);
+    const byAge = intent.recencySort === "newest" ? rightTime - leftTime : leftTime - rightTime;
+    if (byAge !== 0) {
+      return byAge;
+    }
+  }
+  return right.score - left.score || left.node.name.localeCompare(right.node.name);
+}
+
+function modifiedTime(node: IndexNode): number {
+  if (!node.modifiedAt) {
+    return 0;
+  }
+  const time = new Date(node.modifiedAt).getTime();
+  return Number.isFinite(time) ? time : 0;
 }
 
 function scoreNode(node: IndexNode, intent: SemanticIntent): { score: number; reasons: string[] } {
@@ -124,6 +145,13 @@ function scoreNode(node: IndexNode, intent: SemanticIntent): { score: number; re
     }
     score += ageScore;
     reasons.push(intent.ageMode === "within" ? `last ${intent.ageDays} days` : `${intent.ageDays} days ago`);
+  } else if (intent.recencySort) {
+    const recency = scoreRecencyPreference(node.modifiedAt, intent.recencySort);
+    if (recency <= 0) {
+      return { score: 0, reasons: [] };
+    }
+    score += recency;
+    reasons.push(intent.recencySort === "newest" ? "newer" : "older");
   }
 
   // Prefer real project files over tiny stubs when nothing else distinguishes them.
@@ -132,6 +160,22 @@ function scoreNode(node: IndexNode, intent: SemanticIntent): { score: number; re
   }
 
   return { score, reasons: unique(reasons) };
+}
+
+function scoreRecencyPreference(modifiedAt: string | null, sort: "newest" | "oldest"): number {
+  if (!modifiedAt) {
+    return 0;
+  }
+  const time = new Date(modifiedAt).getTime();
+  if (!Number.isFinite(time)) {
+    return 0;
+  }
+  const ageDays = Math.max(0, (Date.now() - time) / DAY_MS);
+  if (sort === "newest") {
+    // Fresher files score higher; still keep older matches so limit can pick top N.
+    return Math.round(8 + 22 * Math.exp(-ageDays / 45));
+  }
+  return Math.round(8 + 22 * (1 - Math.exp(-ageDays / 90)));
 }
 
 function scoreSize(size: number, intent: SemanticIntent): number {

@@ -1,16 +1,23 @@
 /**
  * Turns a human sentence into structured intent for ranking files from a JSON index.
- * Example: "all revit models for airfield location for last month"
+ * Examples: "all revit models for airfield location for last month",
+ * "3 newer revit models", "last month pdfs"
  */
 
 export type SizeBand = "tiny" | "small" | "medium" | "large" | "huge";
 /** `around` = about N days ago. `within` = modified in the last N days. */
 export type AgeMode = "around" | "within";
+/** Prefer ranking by modified date after filters match. */
+export type RecencySort = "newest" | "oldest";
 
 export interface SemanticIntent {
   raw: string;
   /** Prefer every matching file, not a single favorite. */
   wantAll: boolean;
+  /** Cap how many hits to keep (e.g. "3 newer revit models"). */
+  limit: number | null;
+  /** Sort matches by file age when the ask says newer / oldest / latest. */
+  recencySort: RecencySort | null;
   keywords: string[];
   extensions: string[];
   categories: string[];
@@ -77,7 +84,90 @@ const STOP = new Set([
   "past",
   "over",
   "under",
+  "newer",
+  "newest",
+  "latest",
+  "recent",
+  "recently",
+  "older",
+  "oldest",
+  "top",
+  "first",
+  "only",
+  "most",
+  "today",
+  "yesterday",
+  "tomorrow",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve",
+  "thirteen",
+  "fourteen",
+  "fifteen",
+  "sixteen",
+  "seventeen",
+  "eighteen",
+  "nineteen",
+  "twenty",
+  "thirty",
+  "forty",
+  "fifty",
+  "sixty",
+  "seventy",
+  "eighty",
+  "ninety",
+  "hundred",
+  "previous",
+  "during",
+  "within",
+  "since",
 ]);
+
+/** Spoken or written counts used in limits and date windows. */
+const NUMBER_WORDS: Record<string, number> = {
+  a: 1,
+  an: 1,
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+  eleven: 11,
+  twelve: 12,
+  thirteen: 13,
+  fourteen: 14,
+  fifteen: 15,
+  sixteen: 16,
+  seventeen: 17,
+  eighteen: 18,
+  nineteen: 19,
+  twenty: 20,
+  thirty: 30,
+  forty: 40,
+  fifty: 50,
+  sixty: 60,
+  seventy: 70,
+  eighty: 80,
+  ninety: 90,
+  hundred: 100,
+};
+
+const NUMBER_TOKEN = String.raw`(?:\d{1,3}|a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)`;
+const TIME_UNIT = String.raw`(days?|weeks?|months?|years?)`;
 
 const EXTENSION_ALIASES: Array<{ match: RegExp; ext: string }> = [
   { match: /\brevit\b|\.rvt\b|\brvt\b/, ext: "rvt" },
@@ -86,13 +176,13 @@ const EXTENSION_ALIASES: Array<{ match: RegExp; ext: string }> = [
   { match: /\bifc\b|\.ifc\b/, ext: "ifc" },
   { match: /\bnavisworks\b|\.nwd\b|\bnwd\b/, ext: "nwd" },
   { match: /\.nwc\b|\bnwc\b/, ext: "nwc" },
-  { match: /\bautocad\b|\bdwg\b|\.dwg\b/, ext: "dwg" },
+  { match: /\bautocad\b|\bdwgs?\b|\.dwg\b/, ext: "dwg" },
   { match: /\bdxf\b|\.dxf\b/, ext: "dxf" },
-  { match: /\bpdf\b|\.pdf\b/, ext: "pdf" },
+  { match: /\bpdfs?\b|\.pdf\b/, ext: "pdf" },
   { match: /\bexcel\b|\bxlsx\b|\.xlsx\b/, ext: "xlsx" },
   { match: /\bword\b|\bdocx\b|\.docx\b/, ext: "docx" },
-  { match: /\bpng\b|\.png\b/, ext: "png" },
-  { match: /\bjpg\b|\bjpeg\b|\.jpe?g\b/, ext: "jpg" },
+  { match: /\bpngs?\b|\.png\b/, ext: "png" },
+  { match: /\bjpgs?\b|\bjpegs?\b|\.jpe?g\b/, ext: "jpg" },
   { match: /\bmp4\b|\.mp4\b|video\s+file/, ext: "mp4" },
 ];
 
@@ -105,7 +195,7 @@ const CATEGORY_ALIASES: Array<{ match: RegExp; category: string; pathHint?: stri
   { match: /\bgis\b|\bsurvey\b/, category: "GIS" },
   { match: /\bimage\b|\bpicture\b|\brender\b/, category: "Images" },
   { match: /\bvideo\b|\banimation\b/, category: "Video" },
-  { match: /\bpdf\b|\breport\b/, category: "PDF" },
+  { match: /\bpdfs?\b|\breports?\b/, category: "PDF" },
   { match: /\barchive\b|\bzip\b/, category: "Archives" },
 ];
 
@@ -184,6 +274,9 @@ export function parseSemanticIntent(input: string): SemanticIntent {
 
   const age = parseAgeDays(text);
   const size = parseSizeBand(text);
+  const limit = parseLimit(text);
+  const recencySort = parseRecencySort(text);
+  const pluralAsk = /\b(?:pdfs|models|files|documents|drawings|images|dwgs|rvts)\b/.test(text);
 
   const covered = new Set<string>([
     ...extensions,
@@ -217,6 +310,9 @@ export function parseSemanticIntent(input: string): SemanticIntent {
     "little",
     "light",
     "heavy",
+    "pdfs",
+    "dwgs",
+    "rvts",
   ]);
 
   const keywords = text
@@ -227,7 +323,9 @@ export function parseSemanticIntent(input: string): SemanticIntent {
 
   return {
     raw,
-    wantAll: /\b(?:all|every|each)\b/.test(text),
+    wantAll: /\b(?:all|every|each)\b/.test(text) || pluralAsk || (limit !== null && limit > 1),
+    limit,
+    recencySort,
     keywords: unique(keywords),
     extensions,
     categories,
@@ -244,42 +342,141 @@ export function parseSemanticIntent(input: string): SemanticIntent {
   };
 }
 
+function parseLimit(text: string): number | null {
+  const patterns = [
+    new RegExp(String.raw`\b(?:top|first|only)\s+(${NUMBER_TOKEN})\b`),
+    new RegExp(String.raw`\b(${NUMBER_TOKEN})\s+(?:newer|newest|latest|recent|older|oldest)\b`),
+    new RegExp(
+      String.raw`\b(${NUMBER_TOKEN})\s+(?:revit|autocad|pdf|pdfs|dwg|dwgs|rvt|models?|files?|documents?|drawings?|images?)\b`,
+    ),
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (!match) {
+      continue;
+    }
+    const value = parseCountToken(match[1]);
+    if (value !== null && value > 0 && value <= 200) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function parseRecencySort(text: string): RecencySort | null {
+  if (/\b(?:older|oldest|earliest)\b/.test(text)) {
+    return "oldest";
+  }
+  if (/\b(?:newer|newest|latest|most\s+recent|recent(?:ly)?)\b/.test(text)) {
+    return "newest";
+  }
+  return null;
+}
+
 function parseAgeDays(text: string): { mode: AgeMode | null; days: number | null; tolerance: number } {
-  if (/\blast\s+month\b|\bpast\s+month\b|\bin\s+the\s+last\s+month\b/.test(text)) {
-    return { mode: "within", days: 30, tolerance: 0 };
-  }
-  if (/\blast\s+week\b|\bpast\s+week\b|\bin\s+the\s+last\s+week\b/.test(text)) {
-    return { mode: "within", days: 7, tolerance: 0 };
-  }
-  if (/\btoday\b|\bjust\s+now\b/.test(text)) {
+  if (/\btoday\b|\bjust\s+now\b|\bright\s+now\b/.test(text)) {
     return { mode: "within", days: 1, tolerance: 0 };
+  }
+  if (/\bday\s+before\s+yesterday\b/.test(text)) {
+    return { mode: "around", days: 2, tolerance: 1 };
   }
   if (/\byesterday\b/.test(text)) {
     return { mode: "around", days: 1, tolerance: 1 };
   }
-  const within = text.match(/(?:in\s+the\s+)?(?:last|past)\s+(\d+)\s*(days?|weeks?|months?)/);
+
+  // Calendar windows: this week / this month / this year (so far).
+  if (/\bthis\s+week\b/.test(text)) {
+    return { mode: "within", days: daysSinceStartOfWeek(), tolerance: 0 };
+  }
+  if (/\bthis\s+month\b/.test(text)) {
+    return { mode: "within", days: daysSinceStartOfMonth(), tolerance: 0 };
+  }
+  if (/\bthis\s+year\b/.test(text)) {
+    return { mode: "within", days: daysSinceStartOfYear(), tolerance: 0 };
+  }
+
+  // Named last/past/previous periods.
+  if (/\b(?:last|past|previous)\s+week\b|\bin\s+the\s+last\s+week\b/.test(text)) {
+    return { mode: "within", days: 7, tolerance: 0 };
+  }
+  if (/\b(?:last|past|previous)\s+month\b|\bin\s+the\s+last\s+month\b/.test(text)) {
+    return { mode: "within", days: 30, tolerance: 0 };
+  }
+  if (/\b(?:last|past|previous)\s+year\b|\bin\s+the\s+last\s+year\b/.test(text)) {
+    return { mode: "within", days: 365, tolerance: 0 };
+  }
+  if (/\b(?:last|past|previous)\s+day\b|\blast\s+night\b/.test(text)) {
+    return { mode: "within", days: 1, tolerance: 0 };
+  }
+
+  // "last 2 weeks", "past three months", "in the last 10 days", "within two weeks"
+  const within = text.match(
+    new RegExp(String.raw`(?:(?:in|within|during)\s+(?:the\s+)?)?(?:last|past|previous)\s+(${NUMBER_TOKEN})\s+${TIME_UNIT}`),
+  );
   if (within) {
-    const amount = Number(within[1]);
-    const unit = within[2];
-    const days = unit.startsWith("week") ? amount * 7 : unit.startsWith("month") ? amount * 30 : amount;
-    return { mode: "within", days, tolerance: 0 };
+    const amount = parseCountToken(within[1]);
+    if (amount !== null) {
+      return { mode: "within", days: unitToDays(amount, within[2]), tolerance: 0 };
+    }
   }
-  const weeks = text.match(/(\d+)\s*weeks?\s+ago/);
-  if (weeks) {
-    const days = Number(weeks[1]) * 7;
-    return { mode: "around", days, tolerance: Math.max(5, Math.round(days * 0.4)) };
+  const withinAlt = text.match(new RegExp(String.raw`\b(?:within|in)\s+(?:the\s+)?(?:last\s+)?(${NUMBER_TOKEN})\s+${TIME_UNIT}`));
+  if (withinAlt) {
+    const amount = parseCountToken(withinAlt[1]);
+    if (amount !== null) {
+      return { mode: "within", days: unitToDays(amount, withinAlt[2]), tolerance: 0 };
+    }
   }
-  const days = text.match(/(\d+)\s*days?\s+ago/);
-  if (days) {
-    const value = Number(days[1]);
-    return { mode: "around", days: value, tolerance: Math.max(3, Math.round(value * 0.4)) };
+
+  // "2 days ago", "three weeks ago", "a month ago"
+  const ago = text.match(new RegExp(String.raw`\b(${NUMBER_TOKEN})\s+${TIME_UNIT}\s+ago\b`));
+  if (ago) {
+    const amount = parseCountToken(ago[1]);
+    if (amount !== null) {
+      const days = unitToDays(amount, ago[2]);
+      return { mode: "around", days, tolerance: Math.max(2, Math.round(days * 0.35)) };
+    }
   }
-  const months = text.match(/(\d+)\s*months?\s+ago/);
-  if (months) {
-    const value = Number(months[1]) * 30;
-    return { mode: "around", days: value, tolerance: Math.max(10, Math.round(value * 0.35)) };
-  }
+
   return { mode: null, days: null, tolerance: 7 };
+}
+
+function parseCountToken(token: string): number | null {
+  const cleaned = token.trim().toLowerCase();
+  if (/^\d{1,3}$/.test(cleaned)) {
+    const value = Number(cleaned);
+    return Number.isFinite(value) ? value : null;
+  }
+  return NUMBER_WORDS[cleaned] ?? null;
+}
+
+function unitToDays(amount: number, unit: string): number {
+  if (unit.startsWith("week")) {
+    return amount * 7;
+  }
+  if (unit.startsWith("month")) {
+    return amount * 30;
+  }
+  if (unit.startsWith("year")) {
+    return amount * 365;
+  }
+  return amount;
+}
+
+function daysSinceStartOfWeek(): number {
+  const now = new Date();
+  const day = now.getDay(); // 0 Sunday … 6 Saturday
+  const mondayBased = day === 0 ? 6 : day - 1;
+  return Math.max(1, mondayBased + 1);
+}
+
+function daysSinceStartOfMonth(): number {
+  return Math.max(1, new Date().getDate());
+}
+
+function daysSinceStartOfYear(): number {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  return Math.max(1, Math.ceil((now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)) + 1);
 }
 
 function parseSizeBand(text: string): { band: SizeBand | null; min: number | null; max: number | null } {
