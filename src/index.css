@@ -191,6 +191,13 @@ select {
   z-index: 1;
 }
 
+/* Keep the top bar (and More menu) above FoamTree / stage siblings. */
+.app-shell > .topbar,
+.app-shell > .toolbar {
+  z-index: 30;
+  overflow: visible;
+}
+
 .app-backdrop,
 .app-backdrop-pattern,
 .app-backdrop-image {
@@ -355,12 +362,13 @@ select {
 
 .topbar-menu {
   position: relative;
+  z-index: 31;
   margin-left: auto;
 }
 
 .topbar-menu-items {
   position: relative;
-  z-index: 2;
+  z-index: 31;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -415,6 +423,7 @@ select {
 
 .more-menu {
   position: relative;
+  z-index: 31;
 }
 
 .more-menu summary {
@@ -445,7 +454,7 @@ select {
   border-radius: 14px;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
   padding: 6px;
-  z-index: 12;
+  z-index: 40;
   display: grid;
   gap: 2px;
 }
