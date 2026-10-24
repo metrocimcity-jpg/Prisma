@@ -1,5 +1,7 @@
 import type { FileIndex, IndexNode } from "@/data/types";
+import { canonicalAccMetadataKey } from "@/metadata/accTaxonomy";
 import { parseSemanticIntent, type SemanticIntent } from "@/search/semanticIntent";
+import { enrichIntentWithIndexMetadata, metaKeyAliases } from "@/search/semanticMetadata";
 
 export interface SemanticHit {
   id: string;
@@ -12,6 +14,8 @@ export interface SemanticSearchResult {
   intent: SemanticIntent;
   hits: SemanticHit[];
   favorite: IndexNode | null;
+  /** True when nothing matched and unrelated sample files were returned instead. */
+  usedFallback?: boolean;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -26,10 +30,11 @@ export function splitSemanticAsks(text: string): string[] {
 
 /** Rank files in a loaded JSON index for a natural-language ask. */
 export function searchSemantic(index: FileIndex | null | undefined, ask: string): SemanticSearchResult {
-  const intent = parseSemanticIntent(ask);
+  const parsed = parseSemanticIntent(ask);
   if (!index) {
-    return { intent, hits: [], favorite: null };
+    return { intent: parsed, hits: [], favorite: null };
   }
+  const intent = enrichIntentWithIndexMetadata(parsed, index, ask);
   const files = index.items.filter((item) => item.nodeType === "file");
   if (files.length === 0 || !intent.raw.trim()) {
     return { intent, hits: [], favorite: null };
@@ -44,11 +49,23 @@ export function searchSemantic(index: FileIndex | null | undefined, ask: string)
     hits.push({ id: node.id, score: scored.score, reasons: scored.reasons, node });
   }
   hits.sort((left, right) => compareHits(left, right, intent));
-  const limited = intent.limit !== null ? hits.slice(0, intent.limit) : hits;
+  // Ignore weak keyword-only hits (e.g. "type" in a filename) so empty asks fall back to samples.
+  const strong = hits.filter((hit) => hit.score >= 12);
+  const limited = intent.limit !== null ? strong.slice(0, intent.limit) : strong;
+  if (limited.length > 0) {
+    return {
+      intent,
+      hits: limited,
+      favorite: limited[0]?.node ?? null,
+      usedFallback: false,
+    };
+  }
+  const fallback = unrelatedSampleHits(files, intent);
   return {
     intent,
-    hits: limited,
-    favorite: limited[0]?.node ?? null,
+    hits: fallback,
+    favorite: fallback[0]?.node ?? null,
+    usedFallback: fallback.length > 0,
   };
 }
 
@@ -81,11 +98,65 @@ export function searchSemanticMany(index: FileIndex | null | undefined, ask: str
     }
   }
   hits.sort((left, right) => right.score - left.score || left.node.name.localeCompare(right.node.name));
+  if (hits.length > 0) {
+    return {
+      intent: { ...primary, raw: ask.trim(), wantAll: true },
+      hits,
+      favorite: hits[0]?.node ?? null,
+      usedFallback: false,
+    };
+  }
+  const files = index?.items.filter((item) => item.nodeType === "file") ?? [];
+  const fallback = unrelatedSampleHits(files, primary);
   return {
     intent: { ...primary, raw: ask.trim(), wantAll: true },
-    hits,
-    favorite: hits[0]?.node ?? null,
+    hits: fallback,
+    favorite: fallback[0]?.node ?? null,
+    usedFallback: fallback.length > 0,
   };
+}
+
+/** When an ask matches nothing, still pin a few unrelated files on the map. */
+function unrelatedSampleHits(files: IndexNode[], intent: SemanticIntent): SemanticHit[] {
+  if (files.length === 0) {
+    return [];
+  }
+  let pool = files;
+  if (intent.extensions.length > 0) {
+    const sameExt = files.filter((file) => intent.extensions.includes((file.extension ?? "").toLowerCase()));
+    // Prefer same type when possible, otherwise any files so the map is never empty.
+    if (sameExt.length > 0) {
+      pool = sameExt;
+    }
+  }
+  const count = Math.min(intent.limit ?? 6, 8, pool.length);
+  const ranked = [...pool].sort((left, right) => {
+    const byTime = modifiedTime(right) - modifiedTime(left);
+    if (byTime !== 0) {
+      return byTime;
+    }
+    return right.size - left.size || left.name.localeCompare(right.name);
+  });
+  // Spread through the list so suggestions are not all from one folder.
+  const step = Math.max(1, Math.floor(ranked.length / count));
+  const picked: IndexNode[] = [];
+  for (let index = 0; index < ranked.length && picked.length < count; index += step) {
+    picked.push(ranked[index]);
+  }
+  while (picked.length < count && picked.length < ranked.length) {
+    const next = ranked[picked.length];
+    if (next && !picked.includes(next)) {
+      picked.push(next);
+    } else {
+      break;
+    }
+  }
+  return picked.map((node) => ({
+    id: node.id,
+    score: 0.01,
+    reasons: ["no exact match", "sample"],
+    node,
+  }));
 }
 
 function compareHits(left: SemanticHit, right: SemanticHit, intent: SemanticIntent): number {
@@ -150,10 +221,21 @@ function scoreNode(node: IndexNode, intent: SemanticIntent): { score: number; re
     reasons.push(matchedLocation);
   }
 
-  for (const discipline of intent.disciplines) {
-    if (meta.includes(discipline.toLowerCase()) || haystack.includes(discipline.toLowerCase())) {
-      score += 10;
-      reasons.push(discipline);
+  if (intent.metadataFilters.length > 0) {
+    for (const filter of intent.metadataFilters) {
+      const matched = matchMetadataFilter(node, filter);
+      if (!matched) {
+        return { score: 0, reasons: [] };
+      }
+      score += 36;
+      reasons.push(`${matched.key}=${matched.value}`);
+    }
+  } else {
+    for (const discipline of intent.disciplines) {
+      if (meta.includes(discipline.toLowerCase()) || haystack.includes(discipline.toLowerCase())) {
+        score += 10;
+        reasons.push(discipline);
+      }
     }
   }
 
@@ -198,8 +280,8 @@ function scoreNode(node: IndexNode, intent: SemanticIntent): { score: number; re
     reasons.push(intent.recencySort === "newest" ? "newer" : "older");
   }
 
-  // Prefer real project files over tiny stubs when nothing else distinguishes them.
-  if (node.size > 1024) {
+  // Prefer real project files over tiny stubs only after something else matched.
+  if (score > 0 && node.size > 1024) {
     score += 1;
   }
 
@@ -297,6 +379,56 @@ function flattenMetadata(node: IndexNode): string {
     .map((value) => String(value))
     .join(" ")
     .toLowerCase();
+}
+
+function matchMetadataFilter(
+  node: IndexNode,
+  filter: { keys: string[]; values: string[] },
+): { key: string; value: string } | null {
+  const metadata = node.metadata;
+  if (!metadata) {
+    return null;
+  }
+  const wantedKeys = new Set(
+    filter.keys.flatMap((key) => metaKeyAliases(key)).map((key) => key.toLowerCase()),
+  );
+  // Also accept canonical ACC key equivalence (discipline ↔ ACC-Discipline).
+  for (const key of [...wantedKeys]) {
+    const canonical = canonicalAccMetadataKey(key);
+    if (canonical) {
+      wantedKeys.add(canonical.toLowerCase());
+    }
+  }
+  const wantedValues = filter.values.map((value) => value.toLowerCase().trim()).filter(Boolean);
+  for (const [key, raw] of Object.entries(metadata)) {
+    if (raw === null || raw === undefined) {
+      continue;
+    }
+    const keyHit =
+      wantedKeys.has(key.toLowerCase()) ||
+      (canonicalAccMetadataKey(key) !== null && wantedKeys.has((canonicalAccMetadataKey(key) as string).toLowerCase()));
+    if (!keyHit) {
+      continue;
+    }
+    const value = String(raw).trim();
+    const lower = value.toLowerCase();
+    const code = lower.match(/^([a-z0-9]+)\s*\[/)?.[1] ?? "";
+    const bracket = lower.match(/\[([^\]]+)\]/)?.[1]?.replace(/[^a-z0-9]+/g, "") ?? "";
+    const hit = wantedValues.find((wanted) => {
+      const wantedCompact = wanted.replace(/[^a-z0-9]+/g, "");
+      return (
+        lower === wanted ||
+        lower.includes(wanted) ||
+        wanted.includes(lower) ||
+        (code.length > 0 && (code === wanted || code === wantedCompact || wanted.startsWith(code))) ||
+        (bracket.length >= 4 && wantedCompact.length >= 4 && (bracket.includes(wantedCompact) || wantedCompact.includes(bracket)))
+      );
+    });
+    if (hit) {
+      return { key, value };
+    }
+  }
+  return null;
 }
 
 function unique(values: string[]): string[] {

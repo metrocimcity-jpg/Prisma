@@ -10,6 +10,12 @@ export type AgeMode = "around" | "within";
 /** Prefer ranking by modified date after filters match. */
 export type RecencySort = "newest" | "oldest";
 
+/** Hard filter against JSON `metadata` (any listed key may match any listed value). */
+export interface MetadataFilter {
+  keys: string[];
+  values: string[];
+}
+
 export interface SemanticIntent {
   raw: string;
   /** Prefer every matching file, not a single favorite. */
@@ -25,6 +31,8 @@ export interface SemanticIntent {
   locations: string[];
   disciplines: string[];
   documentTypes: string[];
+  /** Required JSON metadata matches (e.g. discipline=Architectural). */
+  metadataFilters: MetadataFilter[];
   sizeBand: SizeBand | null;
   sizeMaxBytes: number | null;
   sizeMinBytes: number | null;
@@ -199,11 +207,21 @@ const CATEGORY_ALIASES: Array<{ match: RegExp; category: string; pathHint?: stri
   { match: /\barchive\b|\bzip\b/, category: "Archives" },
 ];
 
-const DISCIPLINE_ALIASES: Array<{ match: RegExp; value: string }> = [
-  { match: /\barchitectur(?:e|al)\b/, value: "ARCH" },
-  { match: /\bstructure\b|\bstructural\b/, value: "STR" },
-  { match: /\bmep\b/, value: "MEP" },
-  { match: /\belectrical\b/, value: "ELEO" },
+const DISCIPLINE_ALIASES: Array<{ match: RegExp; values: string[]; label: string }> = [
+  { match: /\barchitectur(?:e|al)\b/, values: ["ARCH", "Architectural", "Architecture"], label: "Architectural" },
+  { match: /\bstructure\b|\bstructural\b/, values: ["STR", "Structural", "Structure"], label: "Structural" },
+  { match: /\bmep\b/, values: ["MEP"], label: "MEP" },
+  { match: /\belectrical\b/, values: ["ELEO", "Electrical", "ELE"], label: "Electrical" },
+  { match: /\bmechanical\b/, values: ["MECH", "Mechanical"], label: "Mechanical" },
+  { match: /\bplumbing\b/, values: ["PLUMB", "Plumbing"], label: "Plumbing" },
+];
+
+const DISCIPLINE_META_KEYS = [
+  "discipline",
+  "Discipline",
+  "ACC-Discipline",
+  "acc-discipline",
+  "accDiscipline",
 ];
 
 const LOCATION_PHRASES = [
@@ -247,9 +265,25 @@ export function parseSemanticIntent(input: string): SemanticIntent {
   }
 
   const disciplines: string[] = [];
+  const metadataFilters: MetadataFilter[] = [];
   for (const alias of DISCIPLINE_ALIASES) {
-    if (alias.match.test(text) && !disciplines.includes(alias.value)) {
-      disciplines.push(alias.value);
+    if (!alias.match.test(text)) {
+      continue;
+    }
+    if (!disciplines.includes(alias.label)) {
+      disciplines.push(alias.label);
+    }
+    pushMetadataFilter(metadataFilters, DISCIPLINE_META_KEYS, alias.values);
+  }
+
+  for (const filter of parseExplicitMetadata(text)) {
+    pushMetadataFilter(metadataFilters, filter.keys, filter.values);
+    if (filter.keys.some((key) => DISCIPLINE_META_KEYS.some((item) => item.toLowerCase() === key.toLowerCase()))) {
+      for (const value of filter.values) {
+        if (!disciplines.includes(value)) {
+          disciplines.push(value);
+        }
+      }
     }
   }
 
@@ -268,7 +302,7 @@ export function parseSemanticIntent(input: string): SemanticIntent {
   }
 
   const documentTypes: string[] = [];
-  if (/\bmodel\b|\bm3d\b/.test(text)) {
+  if (/\bm3d\b/.test(text)) {
     documentTypes.push("M3D");
   }
 
@@ -283,6 +317,11 @@ export function parseSemanticIntent(input: string): SemanticIntent {
     ...categories.map((item) => item.toLowerCase()),
     ...pathHints.map((item) => item.toLowerCase()),
     ...locations.flatMap((item) => item.split(" ")),
+    ...disciplines.flatMap((item) => item.toLowerCase().split(" ")),
+    ...metadataFilters.flatMap((filter) => [
+      ...filter.keys.map((key) => key.toLowerCase()),
+      ...filter.values.flatMap((value) => value.toLowerCase().split(/\s+/)),
+    ]),
     "revit",
     "autodesk",
     "autocad",
@@ -291,6 +330,10 @@ export function parseSemanticIntent(input: string): SemanticIntent {
     "architecture",
     "structural",
     "structure",
+    "electrical",
+    "mechanical",
+    "plumbing",
+    "discipline",
     "location",
     "locations",
     "week",
@@ -333,6 +376,7 @@ export function parseSemanticIntent(input: string): SemanticIntent {
     locations,
     disciplines,
     documentTypes,
+    metadataFilters,
     sizeBand: size.band,
     sizeMaxBytes: size.max,
     sizeMinBytes: size.min,
@@ -340,6 +384,84 @@ export function parseSemanticIntent(input: string): SemanticIntent {
     ageDays: age.days,
     ageToleranceDays: age.tolerance,
   };
+}
+
+function parseExplicitMetadata(text: string): MetadataFilter[] {
+  const filters: MetadataFilter[] = [];
+  // Support ACC keys with spaces: ACC-Document Type=M3D, ACC-Sub Program=AE
+  const spaced = /\b(acc[\s-]?[a-z][a-z0-9 -]*?)\s*[=:]\s*"?([a-z0-9][a-z0-9 ._[\]-]*)"?/gi;
+  let spacedMatch: RegExpExecArray | null;
+  while ((spacedMatch = spaced.exec(text)) !== null) {
+    const key = spacedMatch[1].replace(/\s+/g, " ").trim();
+    const value = spacedMatch[2].trim();
+    if (key && value) {
+      pushMetadataFilter(filters, expandMetaKeys(key), [value]);
+    }
+  }
+  const pattern = /\b([a-z][\w-]*)\s*[=:]\s*"?([a-z0-9][a-z0-9 ._[\]-]*)"?/gi;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(text)) !== null) {
+    const key = match[1].trim();
+    const value = match[2].trim();
+    if (!key || !value) {
+      continue;
+    }
+    // Skip classic search tokens already handled as extensions / categories.
+    if (key === "ext" || key === "size" || key === "name" || key === "path" || key === "modified") {
+      continue;
+    }
+    pushMetadataFilter(filters, expandMetaKeys(key), [value]);
+  }
+  return filters;
+}
+
+function expandMetaKeys(key: string): string[] {
+  const normalized = key.replace(/\s+/g, " ").trim();
+  const lower = normalized.toLowerCase();
+  if (lower === "discipline" || lower === "acc-discipline") {
+    return DISCIPLINE_META_KEYS;
+  }
+  if (lower === "location" || lower === "acc-location" || lower === "projectlocation") {
+    return ["ACC-Location", "location", "projectLocation", "Location"];
+  }
+  if (lower === "documenttype" || lower === "docType" || lower === "acc-document type" || lower.includes("document type")) {
+    return ["ACC-Document Type", "documentType", "docType"];
+  }
+  if (lower === "program" || lower === "acc-program") {
+    return ["ACC-Program", "program"];
+  }
+  if (lower.includes("sub") && lower.includes("program")) {
+    return ["ACC-Sub Program", "subProgram"];
+  }
+  if (lower === "portfolio" || lower === "acc-portfolio") {
+    return ["ACC-Portfolio", "portfolio"];
+  }
+  if (lower === "originator" || lower === "acc-originator") {
+    return ["ACC-Originator", "originator"];
+  }
+  return [normalized];
+}
+
+function pushMetadataFilter(target: MetadataFilter[], keys: string[], values: string[]): void {
+  const normalizedKeys = keys.map((key) => key.trim()).filter(Boolean);
+  const normalizedValues = values.map((value) => value.trim()).filter(Boolean);
+  if (normalizedKeys.length === 0 || normalizedValues.length === 0) {
+    return;
+  }
+  const existing = target.find(
+    (filter) =>
+      filter.keys.length === normalizedKeys.length &&
+      filter.keys.every((key, index) => key.toLowerCase() === normalizedKeys[index].toLowerCase()),
+  );
+  if (existing) {
+    for (const value of normalizedValues) {
+      if (!existing.values.some((item) => item.toLowerCase() === value.toLowerCase())) {
+        existing.values.push(value);
+      }
+    }
+    return;
+  }
+  target.push({ keys: normalizedKeys, values: normalizedValues });
 }
 
 function parseLimit(text: string): number | null {

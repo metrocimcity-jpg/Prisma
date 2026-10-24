@@ -11,7 +11,15 @@ import {
 import { useEffect, useState } from "react";
 
 /** One-click semantic chips — toggle several for a multi-search with “ / ”. */
-const QUICK_ASKS = ["3 newer revit", "last month pdfs", "two weeks ago dwg"] as const;
+const QUICK_ASKS = [
+  "3 newer revit",
+  "last month pdfs",
+  "two weeks ago dwg",
+  "Architectural revit models",
+  "electrical revit models",
+  "drawings runway 05",
+  "ACC-Discipline=ELE7",
+] as const;
 
 const PLACEHOLDER = "3 newer revit / last month pdfs / two weeks ago dwg";
 
@@ -194,16 +202,22 @@ function AskResultCard({
     return <p className="semantic-ask-empty">No file in the loaded JSON matched that ask.</p>;
   }
   const favorite = result.favorite;
+  const fallback = result.usedFallback === true;
   return (
     <div className="semantic-ask-result">
+      {fallback ? (
+        <p className="semantic-ask-empty">No exact match — showing sample files on the map.</p>
+      ) : null}
       {favorite ? (
         <button type="button" className="semantic-ask-favorite" onClick={() => onSelect(favorite.id)}>
           <span className="semantic-ask-kicker">
-            {partCount > 1
-              ? `${partCount} asks · ${result.hits.length} files`
-              : result.intent.wantAll && result.hits.length > 1
-                ? `${result.hits.length} matches · top`
-                : "Favorite"}
+            {fallback
+              ? `Sample · ${result.hits.length} files`
+              : partCount > 1
+                ? `${partCount} asks · ${result.hits.length} files`
+                : result.intent.wantAll && result.hits.length > 1
+                  ? `${result.hits.length} matches · top`
+                  : "Favorite"}
           </span>
           <span className="semantic-ask-name">{favorite.name}</span>
           <span className="semantic-ask-meta">
@@ -225,11 +239,13 @@ function AskResultCard({
         ))}
       </ul>
       <p className="semantic-ask-applied">
-        {result.hits.length > 0
-          ? `${result.hits.length} file${result.hits.length === 1 ? "" : "s"} on the FoamTree map`
-          : "Nothing to show on the map"}
-        {partCount > 1 ? ` · ${partCount} asks` : ""}
-        {result.appliedSearch ? ` · ${result.appliedSearch}` : ""}
+        {fallback
+          ? `${result.hits.length} sample file${result.hits.length === 1 ? "" : "s"} on the FoamTree map (unrelated)`
+          : result.hits.length > 0
+            ? `${result.hits.length} file${result.hits.length === 1 ? "" : "s"} on the FoamTree map`
+            : "Nothing to show on the map"}
+        {!fallback && partCount > 1 ? ` · ${partCount} asks` : ""}
+        {!fallback && result.appliedSearch ? ` · ${result.appliedSearch}` : ""}
       </p>
     </div>
   );

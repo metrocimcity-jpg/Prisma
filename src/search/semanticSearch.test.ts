@@ -98,6 +98,35 @@ describe("searchSemantic", () => {
     expect(result.hits.every((hit) => new Date(hit.node.modifiedAt ?? 0).getTime() >= monthAgo - 12 * 60 * 60 * 1000)).toBe(true);
   });
 
+  it("keeps only revit files whose JSON discipline is architectural", () => {
+    const intent = parseSemanticIntent("Architectural revit models");
+    expect(intent.extensions).toContain("rvt");
+    expect(intent.metadataFilters.some((filter) => filter.values.includes("ARCH"))).toBe(true);
+
+    const index = createSampleIndex();
+    const result = searchSemantic(index, "Architectural revit models");
+    expect(result.hits.length).toBeGreaterThan(0);
+    expect(result.hits.every((hit) => hit.node.extension === "rvt")).toBe(true);
+    expect(
+      result.hits.every((hit) => String(hit.node.metadata?.discipline ?? "").toUpperCase() === "ARCH"),
+    ).toBe(true);
+    expect(result.hits.some((hit) => hit.node.name === "Harbor-Arch.rvt")).toBe(false);
+    expect(result.hits.some((hit) => hit.node.name.startsWith("Airfield-"))).toBe(true);
+
+    const explicit = searchSemantic(index, "rvt discipline=Architectural");
+    expect(explicit.hits.every((hit) => String(hit.node.metadata?.discipline ?? "").toUpperCase() === "ARCH")).toBe(
+      true,
+    );
+  });
+
+  it("shows unrelated sample files when nothing matches", () => {
+    const index = createSampleIndex();
+    const result = searchSemantic(index, "zzzz-not-a-real-file-type-qqqq");
+    expect(result.usedFallback).toBe(true);
+    expect(result.hits.length).toBeGreaterThan(0);
+    expect(result.hits.every((hit) => hit.reasons.includes("no exact match"))).toBe(true);
+  });
+
   it("unions multi-search asks split on /", () => {
     expect(splitSemanticAsks("3 newer revit / last month pdfs / two weeks ago dwg")).toEqual([
       "3 newer revit",
