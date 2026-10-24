@@ -4,8 +4,15 @@ import { CATEGORY_GROUPS } from "@/filtering/categoryGroups";
 import { emptyFilterState, type FilterState } from "@/filtering/FilterEngine";
 import { resolveFilter } from "@/voice/resolveFilter";
 import { defaultSearchEngine, type SearchHit } from "@/search/SearchEngine";
-import { intentToSearchQuery, searchSemantic, type SemanticHit, type SemanticSearchResult } from "@/search/semanticSearch";
-import type { SemanticIntent } from "@/search/semanticIntent";
+import {
+  intentToSearchQuery,
+  searchSemantic,
+  searchSemanticMany,
+  splitSemanticAsks,
+  type SemanticHit,
+  type SemanticSearchResult,
+} from "@/search/semanticSearch";
+import { parseSemanticIntent, type SemanticIntent } from "@/search/semanticIntent";
 import { actions, getState, subscribe, type PrismaState } from "@/state/store";
 import type { AppConfig, SavedPreset } from "@/config/defaults";
 import type { GroupLevel } from "@/visualization/types";
@@ -195,18 +202,20 @@ export function createPrismaApi(): PrismaApi {
       actions.setSearch("");
     },
     previewAsk(text: string): SemanticSearchResult {
-      return searchSemantic(getState().index, text);
+      return searchSemanticMany(getState().index, text);
     },
     ask(text: string): PrismaAskResult {
-      const result = searchSemantic(getState().index, text);
-      const appliedSearch = intentToSearchQuery(result.intent);
+      const result = searchSemanticMany(getState().index, text);
+      const parts = splitSemanticAsks(text);
+      const appliedSearch = parts.map((part) => intentToSearchQuery(parseSemanticIntent(part))).filter(Boolean).join(" · ");
       const hitIds = result.hits.map((hit) => hit.id);
+      const label = parts.length > 1 ? parts.join(" · ") : text.trim();
       // Temporary FoamTree JSON: hit files as adjacent siblings (do not apply keyword search/filters).
-      actions.setSemanticHits(text.trim(), hitIds);
+      actions.setSemanticHits(label, hitIds);
       return { ...result, appliedSearch };
     },
     getFavorite(text: string): IndexNode | null {
-      return searchSemantic(getState().index, text).favorite;
+      return searchSemanticMany(getState().index, text).favorite;
     },
 
     setFilters: (filters) => actions.setFilters(filters),

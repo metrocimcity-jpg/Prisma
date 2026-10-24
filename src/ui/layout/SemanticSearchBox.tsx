@@ -1,4 +1,6 @@
 import { createPrismaApi, type PrismaAskResult } from "@/api/prismaApi";
+import { splitSemanticAsks } from "@/search/semanticSearch";
+import { actions } from "@/state/store";
 import { formatBytes } from "@/utils/format";
 import {
   isAskDictationSupported,
@@ -8,12 +10,10 @@ import {
 } from "@/voice/askDictation";
 import { useEffect, useState } from "react";
 
-const EXAMPLES = [
-  "all revit models for airfield location for last month",
-  "3 newer revit models",
-  "last month pdfs",
-] as const;
-const EXAMPLE = EXAMPLES[0];
+/** One-click semantic chips — toggle several for a multi-search with “ / ”. */
+const QUICK_ASKS = ["3 newer revit", "last month pdfs", "two weeks ago dwg"] as const;
+
+const PLACEHOLDER = "3 newer revit / last month pdfs / two weeks ago dwg";
 
 const api = createPrismaApi();
 
@@ -24,6 +24,7 @@ export function SemanticSearchBox(): JSX.Element {
   const [dictation, setDictation] = useState<AskDictationStatus>("idle");
   const [dictationMessage, setDictationMessage] = useState("");
   const voiceOk = isAskDictationSupported();
+  const activeParts = new Set(splitSemanticAsks(ask).map((part) => part.toLowerCase()));
 
   useEffect(() => () => stopAskDictation(), []);
 
@@ -38,6 +39,21 @@ export function SemanticSearchBox(): JSX.Element {
       setResult(next);
     } finally {
       setBusy(false);
+    }
+  }
+
+  function toggleChip(chip: string): void {
+    const parts = splitSemanticAsks(ask);
+    const index = parts.findIndex((part) => part.toLowerCase() === chip.toLowerCase());
+    const next =
+      index >= 0 ? [...parts.slice(0, index), ...parts.slice(index + 1)] : [...parts, chip];
+    const joined = next.join(" / ");
+    setAsk(joined);
+    if (next.length > 0) {
+      runAsk(joined);
+    } else {
+      setResult(null);
+      actions.clearSemanticHits();
     }
   }
 
@@ -67,11 +83,30 @@ export function SemanticSearchBox(): JSX.Element {
     });
   }
 
+  const partCount = splitSemanticAsks(ask).length;
+
   return (
     <div className="semantic-ask">
       <div className="semantic-ask-head">
         <h3>Ask Prisma</h3>
-        <span className="semantic-ask-hint">e.g. “3 newer revit”, “last month pdfs”, “two weeks ago dwg”</span>
+        <span className="semantic-ask-hint">Multi-search with / between asks</span>
+      </div>
+      <div className="semantic-ask-chips" role="group" aria-label="Quick semantic asks">
+        {QUICK_ASKS.map((chip) => {
+          const on = activeParts.has(chip.toLowerCase());
+          return (
+            <button
+              key={chip}
+              type="button"
+              className={`semantic-ask-chip${on ? " is-on" : ""}`}
+              aria-pressed={on}
+              title={on ? `Remove “${chip}” from multi-search` : `Add “${chip}” to multi-search`}
+              onClick={() => toggleChip(chip)}
+            >
+              {chip}
+            </button>
+          );
+        })}
       </div>
       <div className={`semantic-ask-field${dictation === "listening" ? " is-listening" : ""}`}>
         <label className="sr-only" htmlFor="semantic-ask-input">
@@ -82,7 +117,7 @@ export function SemanticSearchBox(): JSX.Element {
           className="semantic-ask-input"
           rows={3}
           value={ask}
-          placeholder={EXAMPLE}
+          placeholder={PLACEHOLDER}
           onChange={(event) => setAsk(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {
@@ -117,22 +152,20 @@ export function SemanticSearchBox(): JSX.Element {
       {dictationMessage ? <p className="semantic-ask-voice-status">{dictationMessage}</p> : null}
       <div className="semantic-ask-actions">
         <button type="button" className="semantic-ask-run" disabled={busy || ask.trim().length === 0} onClick={() => runAsk(ask)}>
-          Show on map
+          {partCount > 1 ? `Show ${partCount} asks on map` : "Show on map"}
         </button>
         <button
           type="button"
           className="semantic-ask-example"
           onClick={() => {
-            const current = EXAMPLES.indexOf(ask as (typeof EXAMPLES)[number]);
-            const next = EXAMPLES[(current + 1) % EXAMPLES.length] ?? EXAMPLES[0];
-            setAsk(next);
-            runAsk(next);
+            setAsk(PLACEHOLDER);
+            runAsk(PLACEHOLDER);
           }}
         >
-          Try example
+          Try multi
         </button>
       </div>
-      {result ? <AskResultCard result={result} onSelect={(id) => api.select(id)} /> : null}
+      {result ? <AskResultCard result={result} partCount={partCount} onSelect={(id) => api.select(id)} /> : null}
     </div>
   );
 }
@@ -148,7 +181,15 @@ function MicIcon(): JSX.Element {
   );
 }
 
-function AskResultCard({ result, onSelect }: { result: PrismaAskResult; onSelect: (id: string) => void }): JSX.Element {
+function AskResultCard({
+  result,
+  partCount,
+  onSelect,
+}: {
+  result: PrismaAskResult;
+  partCount: number;
+  onSelect: (id: string) => void;
+}): JSX.Element {
   if (result.hits.length === 0) {
     return <p className="semantic-ask-empty">No file in the loaded JSON matched that ask.</p>;
   }
@@ -158,7 +199,11 @@ function AskResultCard({ result, onSelect }: { result: PrismaAskResult; onSelect
       {favorite ? (
         <button type="button" className="semantic-ask-favorite" onClick={() => onSelect(favorite.id)}>
           <span className="semantic-ask-kicker">
-            {result.intent.wantAll && result.hits.length > 1 ? `${result.hits.length} matches · top` : "Favorite"}
+            {partCount > 1
+              ? `${partCount} asks · ${result.hits.length} files`
+              : result.intent.wantAll && result.hits.length > 1
+                ? `${result.hits.length} matches · top`
+                : "Favorite"}
           </span>
           <span className="semantic-ask-name">{favorite.name}</span>
           <span className="semantic-ask-meta">
@@ -170,7 +215,7 @@ function AskResultCard({ result, onSelect }: { result: PrismaAskResult; onSelect
         </button>
       ) : null}
       <ul className="semantic-ask-hits">
-        {result.hits.slice(0, 6).map((hit) => (
+        {result.hits.slice(0, 8).map((hit) => (
           <li key={hit.id}>
             <button type="button" onClick={() => onSelect(hit.id)}>
               <span>{hit.node.name}</span>
@@ -181,8 +226,9 @@ function AskResultCard({ result, onSelect }: { result: PrismaAskResult; onSelect
       </ul>
       <p className="semantic-ask-applied">
         {result.hits.length > 0
-          ? `${result.hits.length} file${result.hits.length === 1 ? "" : "s"} highlighted on the FoamTree map`
+          ? `${result.hits.length} file${result.hits.length === 1 ? "" : "s"} on the FoamTree map`
           : "Nothing to show on the map"}
+        {partCount > 1 ? ` · ${partCount} asks` : ""}
         {result.appliedSearch ? ` · ${result.appliedSearch}` : ""}
       </p>
     </div>

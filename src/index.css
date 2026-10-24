@@ -731,6 +731,34 @@ select {
   font-size: 11px;
 }
 
+.semantic-ask-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.semantic-ask-chip {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.semantic-ask-chip:hover {
+  border-color: rgba(90, 160, 255, 0.4);
+  background: rgba(56, 132, 255, 0.12);
+}
+
+.semantic-ask-chip.is-on {
+  border-color: rgba(90, 160, 255, 0.55);
+  background: rgba(56, 132, 255, 0.28);
+  color: #dbeafe;
+}
+
 .semantic-ask-field {
   position: relative;
   display: grid;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createSampleIndex } from "@/data/sampleIndex";
 import { parseSemanticIntent } from "@/search/semanticIntent";
-import { intentToSearchQuery, searchSemantic } from "@/search/semanticSearch";
+import { intentToSearchQuery, searchSemantic, searchSemanticMany, splitSemanticAsks } from "@/search/semanticSearch";
 
 const EXAMPLE = "all revit models for airfield location for last month";
 
@@ -96,5 +96,20 @@ describe("searchSemantic", () => {
     expect(result.hits.every((hit) => hit.node.extension === "pdf")).toBe(true);
     const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
     expect(result.hits.every((hit) => new Date(hit.node.modifiedAt ?? 0).getTime() >= monthAgo - 12 * 60 * 60 * 1000)).toBe(true);
+  });
+
+  it("unions multi-search asks split on /", () => {
+    expect(splitSemanticAsks("3 newer revit / last month pdfs / two weeks ago dwg")).toEqual([
+      "3 newer revit",
+      "last month pdfs",
+      "two weeks ago dwg",
+    ]);
+    const index = createSampleIndex();
+    const multi = searchSemanticMany(index, "3 newer revit / last month pdfs / two weeks ago dwg");
+    const extensions = new Set(multi.hits.map((hit) => hit.node.extension));
+    expect(extensions.has("rvt")).toBe(true);
+    expect(extensions.has("pdf")).toBe(true);
+    expect(extensions.has("dwg")).toBe(true);
+    expect(multi.hits.length).toBeGreaterThan(3);
   });
 });

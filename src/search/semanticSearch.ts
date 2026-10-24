@@ -16,6 +16,14 @@ export interface SemanticSearchResult {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** Split a multi-ask string on `/`, `|`, `;`, or newlines. */
+export function splitSemanticAsks(text: string): string[] {
+  return text
+    .split(/\s*[\/|;]+\s*|\n+/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+}
+
 /** Rank files in a loaded JSON index for a natural-language ask. */
 export function searchSemantic(index: FileIndex | null | undefined, ask: string): SemanticSearchResult {
   const intent = parseSemanticIntent(ask);
@@ -41,6 +49,42 @@ export function searchSemantic(index: FileIndex | null | undefined, ask: string)
     intent,
     hits: limited,
     favorite: limited[0]?.node ?? null,
+  };
+}
+
+/**
+ * Run several asks and union the hits (first ask’s limit/recency still apply per part).
+ * Example: "3 newer revit / last month pdfs / two weeks ago dwg"
+ */
+export function searchSemanticMany(index: FileIndex | null | undefined, ask: string): SemanticSearchResult {
+  const parts = splitSemanticAsks(ask);
+  if (parts.length <= 1) {
+    return searchSemantic(index, ask);
+  }
+  const seen = new Set<string>();
+  const hits: SemanticHit[] = [];
+  let primary = parseSemanticIntent(parts[0] ?? ask);
+  for (const part of parts) {
+    const result = searchSemantic(index, part);
+    if (hits.length === 0) {
+      primary = result.intent;
+    }
+    for (const hit of result.hits) {
+      if (seen.has(hit.id)) {
+        continue;
+      }
+      seen.add(hit.id);
+      hits.push({
+        ...hit,
+        reasons: unique([`ask: ${part}`, ...hit.reasons]),
+      });
+    }
+  }
+  hits.sort((left, right) => right.score - left.score || left.node.name.localeCompare(right.node.name));
+  return {
+    intent: { ...primary, raw: ask.trim(), wantAll: true },
+    hits,
+    favorite: hits[0]?.node ?? null,
   };
 }
 
