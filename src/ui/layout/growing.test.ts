@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { IndexNode } from "@/data/types";
-import { growingFileModel, growingModel, growingSnapshot, growingTrail } from "@/ui/layout/growing";
+import { disciplineLegendLabel, growingFileModel, growingModel, growingSnapshot, growingTrail } from "@/ui/layout/growing";
 
 function file(name: string, history: Array<[number, number, string]>, relativePath = name): IndexNode {
   return {
@@ -25,6 +25,14 @@ function file(name: string, history: Array<[number, number, string]>, relativePa
     },
   };
 }
+
+describe("disciplineLegendLabel", () => {
+  it("drops the trailing subdiscipline digit from a code", () => {
+    expect(disciplineLegendLabel("AES0")).toBe("AES");
+    expect(disciplineLegendLabel("ARC0")).toBe("ARC");
+    expect(disciplineLegendLabel("Airfield Ground Lighting")).toBe("Airfield Ground Lighting");
+  });
+});
 
 describe("growingModel", () => {
   it("keeps one circle track per discipline and sums file size", () => {

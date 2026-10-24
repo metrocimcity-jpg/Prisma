@@ -1,5 +1,5 @@
 import { actions, getState } from "@/state/store";
-import { growingSnapshot, growingTrail, type GrowingModel, type GrowingSnapshot } from "@/ui/layout/growing";
+import { disciplineLegendLabel, growingSnapshot, growingTrail, type GrowingModel, type GrowingSnapshot } from "@/ui/layout/growing";
 import { focusSidebarOverview } from "@/ui/layout/sidebarSearch";
 import { previewKind } from "@/utils/previewKind";
 import { DISK_ATLAS_PALETTE } from "@/visualization/palettes";
@@ -198,7 +198,8 @@ export function AnalysisGrowingChart({
         .attr("stroke", (snapshot) => (fileMode && snapshot.id === selectedId ? "#f08a24" : "none"))
         .attr("stroke-width", (snapshot) => (fileMode && snapshot.id === selectedId ? 2.5 : 0));
       circles.append("title").text((snapshot) => {
-        const name = snapshot.label === snapshot.discipline ? snapshot.discipline : `${snapshot.label}\n${snapshot.discipline}`;
+        const discipline = disciplineLegendLabel(snapshot.discipline);
+        const name = snapshot.label === snapshot.discipline ? discipline : `${snapshot.label}\n${discipline}`;
         const hint = fileMode ? "\nClick for overview, double-click to open" : "";
         return `${name}\nVersion ${snapshot.version.toFixed(1)}\n${Math.round(snapshot.sizeMb)} MB\n${formatStamp(snapshot.date)}${hint}`;
       });
@@ -284,7 +285,7 @@ export function AnalysisGrowingChart({
                       : { background: "transparent", boxShadow: `inset 0 0 0 1.5px ${swatch}` }
                   }
                 />
-                {discipline}
+                {disciplineLegendLabel(discipline)}
               </label>
             </li>
           );
@@ -305,7 +306,7 @@ function showFileOverview(snapshot: GrowingSnapshot): void {
     id: snapshot.id,
     name: snapshot.label,
     extension: extensionOf(snapshot.label),
-    discipline: snapshot.discipline,
+    discipline: disciplineLegendLabel(snapshot.discipline),
     version: snapshot.version,
     sizeMb: snapshot.sizeMb,
     dateLabel: formatStamp(snapshot.date),

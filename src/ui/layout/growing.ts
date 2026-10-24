@@ -23,6 +23,11 @@ export interface GrowingModel {
   maxSizeMb: number;
 }
 
+/** Legend text for a discipline code. AES0 stays a separate series, but the label reads AES. */
+export function disciplineLegendLabel(discipline: string): string {
+  return discipline.replace(/^([A-Za-z]{2,})\d$/, "$1");
+}
+
 function disciplineOf(file: IndexNode): string | null {
   const raw = accMetadataRaw(file.metadata, "ACC-Discipline");
   const inferred = raw ?? inferAccTaxonomy(file.name, file.relativePath, file.metadata)["ACC-Discipline"];
