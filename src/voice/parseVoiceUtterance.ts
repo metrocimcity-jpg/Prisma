@@ -1,3 +1,5 @@
+import { parseSemanticIntent } from "@/search/semanticIntent";
+
 export type VoiceCommand =
   | { type: "wake" }
   | { type: "sleep" }
@@ -7,7 +9,8 @@ export type VoiceCommand =
   | { type: "select"; name: string }
   | { type: "filterClear" }
   | { type: "filter"; query: string }
-  | { type: "filterPanel" };
+  | { type: "filterPanel" }
+  | { type: "ask"; text: string };
 
 /** Chrome often hears the name as "prism", "prism a", or "prizma". Longer forms come first. */
 const WAKE_WORD = "(?:hey |ok |okay )?(?:prisma|prism a|priz ma|prizma|prisms|prism)";
@@ -18,6 +21,28 @@ export function normalizeSpeech(text: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+/** True when the phrase looks like Ask Prisma natural language (not a short filter name). */
+export function looksLikeSemanticAsk(text: string): boolean {
+  const intent = parseSemanticIntent(text);
+  if (
+    intent.extensions.length > 0 ||
+    intent.locations.length > 0 ||
+    intent.ageDays !== null ||
+    intent.pathHints.length > 0 ||
+    intent.disciplines.length > 0 ||
+    intent.documentTypes.length > 0 ||
+    intent.sizeBand !== null ||
+    intent.sizeMaxBytes !== null ||
+    intent.sizeMinBytes !== null
+  ) {
+    return true;
+  }
+  if (intent.wantAll && intent.keywords.length > 0) {
+    return true;
+  }
+  return intent.keywords.length >= 2 && text.trim().split(/\s+/).length >= 3;
 }
 
 /**
@@ -98,13 +123,27 @@ function parseCommand(text: string): VoiceCommand | null {
     return { type: "filterPanel" };
   }
 
+  const asked = bare.match(/^(?:ask|find|search(?:\s+for)?|look\s+for|favorite)\s+(.+)$/);
+  if (asked) {
+    const text = asked[1].trim();
+    return text ? { type: "ask", text } : null;
+  }
+
   const shown = bare.match(/^(?:show|only|just)(?:\s+me)?\s+(.+)$/);
   if (shown) {
-    const query = cleanName(shown[1]);
+    const raw = shown[1].trim();
+    if (looksLikeSemanticAsk(raw) || looksLikeSemanticAsk(bare)) {
+      return { type: "ask", text: raw };
+    }
+    const query = cleanName(raw);
     if (!query || query === "filter" || query === "filters") {
       return { type: "filterPanel" };
     }
     return { type: "filter", query };
+  }
+
+  if (looksLikeSemanticAsk(bare)) {
+    return { type: "ask", text: bare };
   }
 
   return null;

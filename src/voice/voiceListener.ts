@@ -132,7 +132,7 @@ function attachGrammar(rec: BrowserRecognition): void {
   try {
     const list = new Ctor();
     list.addFromString(
-      "#JSGF V1.0; grammar prisma; public <command> = prisma | prism | prisma down | select every cell | select all the cells | back | go back | reset | reset the view | filter | clear filters;",
+      "#JSGF V1.0; grammar prisma; public <command> = prisma | prism | prisma down | select every cell | select all the cells | back | go back | reset | reset the view | filter | clear filters | ask | find | show on map;",
       1,
     );
     rec.grammars = list;
@@ -194,7 +194,7 @@ export function startVoice(): void {
   };
   try {
     rec.start();
-    setState({ status: "on", armed: true, message: "Commands on. Say select, back, reset, or filter." });
+    setState({ status: "on", armed: true, message: "Commands on. Say ask, select, back, reset, or filter." });
   } catch (error) {
     session += 1;
     setState({
@@ -306,7 +306,7 @@ function accept(transcript: string): void {
   if (!armed && !addressed) {
     message = `Heard “${transcript.trim()}”. Say Prisma to wake.`;
   } else if (message === transcript.trim()) {
-    message = `Heard “${transcript.trim()}”. Try select, back, reset, or filter.`;
+    message = `Heard “${transcript.trim()}”. Try ask, select, back, reset, or filter.`;
   }
   setState({ armed, message });
 }

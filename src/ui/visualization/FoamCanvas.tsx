@@ -4,7 +4,7 @@ import { actions, usePrisma } from "@/state/store";
 import { GestureOverlay } from "@/ui/visualization/GestureOverlay";
 import { formatBytes } from "@/utils/format";
 import { findFoamGroupBySourceId, toFoamTreeData } from "@/visualization/foamtree/dataObject";
-import { isFoamSelectionPreserved, setFoamTreeInstance } from "@/visualization/foamtree/host";
+import { isFoamSelectionPreserved, preserveFoamSelection, setFoamTreeInstance } from "@/visualization/foamtree/host";
 import { clearCellPointer, setCellPointer } from "@/visualization/foamtree/pointerGlow";
 import { foamTreeViewOptions } from "@/visualization/foamtree/options";
 import type { PrismaFoamGroup } from "@/visualization/foamtree/dataObject";
@@ -88,7 +88,7 @@ function foamInteractionOptions() {
 }
 
 export function FoamCanvas(): JSX.Element {
-  const { vizTree, config, selectedId } = usePrisma();
+  const { vizTree, config, selectedId, semanticHitIds } = usePrisma();
   const hostRef = useRef<HTMLDivElement>(null);
   const foamRef = useRef<FoamTree | null>(null);
 
@@ -178,7 +178,27 @@ export function FoamCanvas(): JSX.Element {
 
   useEffect(() => {
     const foamtree = foamRef.current;
-    if (!foamtree || isFoamSelectionPreserved()) {
+    if (!foamtree || semanticHitIds.length === 0) {
+      return;
+    }
+    const apply = (): void => {
+      const data = foamtree.get("dataObject") as { groups?: PrismaFoamGroup[] } | null;
+      const groups = semanticHitIds
+        .map((id) => findFoamGroupBySourceId(data?.groups, id))
+        .filter((group): group is PrismaFoamGroup => Boolean(group));
+      if (groups.length === 0) {
+        return;
+      }
+      preserveFoamSelection(2500);
+      void foamtree.select({ groups, keepPrevious: false });
+    };
+    const frame = window.requestAnimationFrame(apply);
+    return () => window.cancelAnimationFrame(frame);
+  }, [semanticHitIds, vizTree]);
+
+  useEffect(() => {
+    const foamtree = foamRef.current;
+    if (!foamtree || semanticHitIds.length > 0 || isFoamSelectionPreserved()) {
       return;
     }
     if (selectedId === null) {
@@ -190,7 +210,7 @@ export function FoamCanvas(): JSX.Element {
     if (group) {
       void foamtree.select(group);
     }
-  }, [selectedId]);
+  }, [selectedId, semanticHitIds]);
 
   return (
     <>

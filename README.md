@@ -18,6 +18,7 @@ The visualization uses the `@carrotsearch/foamtree` package (demo distribution).
 | **Analysis** | Folder-scoped bubble chart (age / subprogram / size) and line chart |
 | **Preview** | PDF, IFC (3D), image, video, audio, text for the selected file |
 | **Hands & voice** | Camera gestures and spoken commands (Chrome). See [Hands and voice](#hands-and-voice) |
+| **Ask / API** | Natural-language file ask over the loaded JSON index, plus `window.prisma` for scripts. See [Ask Prisma](#ask-prisma) |
 | **Export** | JSON index, CSV, workspace view state |
 
 ## Default look vs Disk Prisma
@@ -45,6 +46,8 @@ src/
   config/          defaults, analysis presets, workspaces
   gestures/        camera hand control
   voice/           speech commands
+  api/             window.prisma bridge (ask, search, select)
+  search/          field search + natural-language intent
   ui/              shell, sidebar rail, Analysis, Preview, Settings, dialogs
   utils/           previewKind, pdf, ifc, ACC / web links
 ```
@@ -120,6 +123,65 @@ Use Chrome. **Camera** asks for the webcam. **Voice** asks for the microphone an
 | **Clear filters** | Clear the filter and the search |
 
 A phrase can include the wake word, for example **Prisma back**. The bottom-left card quotes what was heard and names the result (`Opened BIM`, `Back`, `View reset`).
+
+## Ask Prisma
+
+The Search sidebar includes **Ask Prisma**: a natural-language box that ranks files from the loaded JSON index (name, path, extension, category, size, modified date, and metadata).
+
+Example:
+
+```text
+all revit models for airfield location for last month
+```
+
+That ask keeps every `.rvt` whose path or metadata mentions the airfield and that was modified in the last 30 days, selects the top match, and filters the map.
+
+### `window.prisma` API
+
+After the app loads in Chrome, `window.prisma` drives the original explorer (map, filters, panels, load/export, camera, voice).
+
+```js
+prisma.loadSample()
+
+// Map: click, open (double-click), back, reset
+prisma.click("BIM")
+prisma.doubleClick("Architecture")
+prisma.open("Airfield-Terminal.rvt")
+prisma.back()
+prisma.reset()
+prisma.selectAll()
+prisma.zoomIn()
+prisma.zoomOut()
+
+// Filters
+prisma.filterCategory("BIM")
+prisma.filterExtension("rvt")
+prisma.filterByQuery("images")
+prisma.clearFilters()
+
+// Search + natural language
+prisma.search("ext:rvt Architecture")
+prisma.ask("all revit models for airfield location for last month")
+prisma.getSelected()?.name
+
+// Panels
+prisma.showPreview()
+prisma.showAnalysis()
+prisma.showSettings()
+prisma.showFilters()
+```
+
+| Area | Methods |
+| --- | --- |
+| **State** | `getIndex`, `getState`, `subscribe`, `getSelected`, `getHovered`, `listFiles`, `listVisible`, `findFile` |
+| **Load / export** | `loadSample`, `loadIndex`, `openFolder`, `openJson`, `mergeFolder`, `mergeJson`, `exportJson`, `exportCsv`, `exportWorkspace`, `cancelScan` |
+| **Search** | `search`, `clearSearch`, `ask`, `previewAsk`, `getFavorite` |
+| **Filters** | `filterCategory`, `filterExtension`, `filterCategories`, `filterByQuery`, `setFilters`, `patchFilters`, `clearFilters`, `emptyFilters` |
+| **Map / cells** | `click`, `select`, `selectByName`, `selectAll`, `open`, `openSelected`, `doubleClick`, `hover`, `back`, `reset`, `drillInto`, `setFocusPath`, `zoomIn`, `zoomOut`, `getFoamTree` |
+| **Panels** | `showFilters`, `hideFilters`, `toggleFilters`, `showPreview`, `hidePreview`, `showAnalysis`, `hideAnalysis`, `showSettings`, `hideSettings`, `showCommands`, `setPanel` |
+| **View** | `setTheme`, `setGroupBy`, `setColorBy`, `patchVisualization`, `patchStyle`, `applyPreset`, `applyStylePreset`, `resetVisualization` |
+| **Camera / voice** | `startCamera`, `stopCamera`, `toggleCamera`, `cameraStatus`, `startVoice`, `stopVoice`, `toggleVoice`, `voiceStatus` |
+| **ACC / SharePoint** | `resolveAccLinks`, `signInAcc`, `signOutAcc`, `openSharePointBrowser` |
 
 ## Build
 
@@ -210,8 +272,8 @@ name:harbor AND path:BIM
 | Ctrl+F | Focus search (opens sidebar if hidden) |
 | Ctrl+K | Command palette |
 | Ctrl+R | Rescan / open folder |
-| Esc | Close overlay / clear selection / navigate up |
-| Backspace | Navigate back |
+| Esc | Close overlay / leave Ask Prisma (restore prior map) / clear selection / navigate up |
+| Backspace | Leave Ask Prisma (restore prior map) / navigate back |
 | Enter | Open selected file |
 
 ## Tests
@@ -232,5 +294,5 @@ Cursor implementation prompts live in `.cursor/rules/` (overview, architecture, 
 - **Empty visualization after filters** — clear all filters or widen the query; the status bar shows matching counts.
 - **Want the old Disk Prisma look** — Settings → Presets → Appearance → Disk Prisma.
 - **FoamTree logo still visible** — hard-refresh; branding strip runs via Vite on `@carrotsearch/foamtree`.
-- **Camera or Voice does nothing** — use Chrome, allow the camera or microphone in the address bar, and refresh. Voice starts in **Commands on**. **Prisma down** pauses it.
+- **Camera or Voice does nothing** — use Chrome, allow the camera or microphone in the address bar, and refresh. Voice starts in **Commands on**. **Prisma down** pauses it. Say **ask** (or a full Ask Prisma sentence, e.g. “all revit models for airfield location for last month”) to run semantic search on the map.
 - **Hand pose is recognized but the map does not move** — point at a cell first. Pinch selects, a second pinch zooms in, an open palm goes back, and a fist resets.

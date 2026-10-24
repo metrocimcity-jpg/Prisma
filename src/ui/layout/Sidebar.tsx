@@ -1,5 +1,6 @@
 import { FilterPanel } from "@/ui/layout/FilterPanel";
 import { DetailsPanel } from "@/ui/layout/DetailsPanel";
+import { SemanticSearchBox } from "@/ui/layout/SemanticSearchBox";
 import { actions, usePrisma } from "@/state/store";
 import { collectMetadataKeys } from "@/data/metadataKeys";
 import { colorForExt } from "@/visualization/palettes";
@@ -265,6 +266,7 @@ export function Sidebar(): JSX.Element {
                 />
                 <kbd>{searchShortcutLabel()}</kbd>
               </div>
+              <SemanticSearchBox />
               <FilterPanel />
             </>
           ) : null}

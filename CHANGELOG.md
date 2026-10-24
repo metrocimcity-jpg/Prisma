@@ -2,6 +2,8 @@
 
 ## 0.4.0
 
+- Ask Prisma: natural-language file search over the loaded JSON index (size, age, extension, folder, location metadata).
+- `window.prisma` API for the original app: click/open cells, back/reset/zoom, category and extension filters, search/ask, panels, load/export, camera, and voice.
 - Camera hand gestures on the FoamTree stage: point to move, pinch to select, double pinch to open a cell, thumbs to zoom, open palm to go back, fist to reset, victory to open the file under the cursor.
 - Voice commands start when **Voice** is on and pause on **Prisma down**. While on: open a cell by name (same as a double-click), select every cell, back, reset, and filter. **Prisma** resumes them.
 - Analysis panel: folder-scoped bubble (age / subprogram / size) and line charts.

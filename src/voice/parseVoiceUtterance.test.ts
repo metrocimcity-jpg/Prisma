@@ -44,6 +44,15 @@ describe("parseVoiceUtterance", () => {
     expect(parseVoiceUtterance("filter the pdfs")).toEqual([{ type: "filter", query: "pdfs" }]);
     expect(parseVoiceUtterance("clear the filters")).toEqual([{ type: "filterClear" }]);
   });
+
+  it("routes natural language to Ask Prisma semantic search", () => {
+    const example = "all revit models for airfield location for last month";
+    expect(parseVoiceUtterance(`Prisma ${example}`)).toEqual([{ type: "wake" }, { type: "ask", text: example }]);
+    expect(parseVoiceUtterance(`ask ${example}`)).toEqual([{ type: "ask", text: example }]);
+    expect(parseVoiceUtterance(`find ${example}`)).toEqual([{ type: "ask", text: example }]);
+    expect(parseVoiceUtterance(`show me ${example}`)).toEqual([{ type: "ask", text: example }]);
+    expect(parseVoiceUtterance(example)).toEqual([{ type: "ask", text: example }]);
+  });
 });
 
 describe("resolveFilter", () => {

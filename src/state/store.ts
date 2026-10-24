@@ -38,7 +38,7 @@ import { describeAccLinkError, normalizeAccWebUrl } from "@/utils/accLinks";
 import { openWebUrl, openableWebUrlFromMetadata } from "@/utils/webLinks";
 import { copyText, openLocalFileHandle, readLocalFile } from "@/utils/openFile";
 import { previewKind } from "@/utils/previewKind";
-import { buildGroupedTree } from "@/visualization/grouping";
+import { buildGroupedTree, buildSemanticResultTree } from "@/visualization/grouping";
 import { applyStylePreset as composeStylePreset, stylePresets } from "@/visualization/foamtree/stylePresets";
 import type { GroupBy, VisualizationStyle, VizNode } from "@/visualization/types";
 import { useSyncExternalStore } from "react";
@@ -63,6 +63,9 @@ export interface PrismaState {
   hoveredId: string | null;
   focusPath: string[];
   search: string;
+  /** File ids from the last Ask Prisma / semantic search, highlighted on FoamTree. */
+  semanticHitIds: string[];
+  semanticAsk: string;
   filters: FilterState;
   config: AppConfig;
   panels: {
@@ -99,6 +102,29 @@ let sharePointImportCancel = false;
 let linkedDirectory: FileSystemDirectoryHandle | null = null;
 let linkedDirectoryKey: string | null = null;
 let directoryPrefetch: Promise<void> | null = null;
+
+/** View before the latest Ask Prisma map — restored by Escape / Backspace. */
+interface SemanticViewSnapshot {
+  search: string;
+  filters: FilterState;
+  focusPath: string[];
+  selectedId: string | null;
+}
+
+let semanticViewSnapshot: SemanticViewSnapshot | null = null;
+
+function cloneFilters(filters: FilterState): FilterState {
+  return {
+    ...filters,
+    extensions: [...filters.extensions],
+    categories: [...filters.categories],
+    fileTypes: [...filters.fileTypes],
+  };
+}
+
+function clearSemanticSnapshot(): void {
+  semanticViewSnapshot = null;
+}
 
 function rememberDirectory(index: FileIndex, handle: FileSystemDirectoryHandle): void {
   linkedDirectory = handle;
@@ -161,6 +187,8 @@ let state: PrismaState = {
   hoveredId: null,
   focusPath: [],
   search: "",
+  semanticHitIds: [],
+  semanticAsk: "",
   filters: emptyFilterState(),
   config: defaultAppConfig(),
   panels: { filters: true, details: true, settings: false, preview: false, analysis: false, commandPalette: false, sharePointBrowser: false },
@@ -241,6 +269,36 @@ function recompute(next: Partial<PrismaState> = {}): void {
   }
 
   const items = merged.index.items;
+  const sizeBy = merged.config.visualization.sizeBy;
+  const customProperty = merged.config.visualization.customProperty;
+
+  // Ask Prisma: temporary flat JSON — hit files as siblings side-by-side on FoamTree.
+  if (merged.semanticHitIds.length > 0) {
+    const hitSet = new Set(merged.semanticHitIds);
+    const matchedFiles = new Set<string>();
+    for (const id of merged.semanticHitIds) {
+      const node = items.find((item) => item.id === id);
+      if (node?.nodeType === "file") {
+        matchedFiles.add(id);
+      }
+    }
+    const vizTree = buildSemanticResultTree(
+      merged.index,
+      [...hitSet],
+      sizeBy,
+      customProperty,
+      matchedFiles.size === 1 ? "Ask result" : `${matchedFiles.size} Ask results`,
+    );
+    state = {
+      ...merged,
+      visibleIds: matchedFiles,
+      visibleCount: matchedFiles.size,
+      vizTree,
+    };
+    emit();
+    return;
+  }
+
   const filterIds = defaultFilterEngine.apply(items, merged.filters);
   const searchHits = merged.search.trim().length > 0 ? defaultSearchEngine.search(items, merged.search) : null;
   const searchIds = searchHits ? new Set(searchHits.map((hit) => hit.id)) : null;
@@ -266,8 +324,8 @@ function recompute(next: Partial<PrismaState> = {}): void {
     merged.index,
     visibleIds,
     merged.config.visualization.groupBy,
-    merged.config.visualization.sizeBy,
-    merged.config.visualization.customProperty,
+    sizeBy,
+    customProperty,
   );
   state = {
     ...merged,
@@ -293,16 +351,53 @@ export function usePrisma(): PrismaState {
 
 export const actions = {
   setSearch(search: string): void {
-    recompute({ search });
+    clearSemanticSnapshot();
+    recompute({ search, semanticHitIds: [], semanticAsk: "" });
+  },
+  /** Pin Ask Prisma hits on a temporary FoamTree layout (hits as adjacent siblings). */
+  setSemanticHits(ask: string, hitIds: string[]): void {
+    if (state.semanticHitIds.length === 0) {
+      semanticViewSnapshot = {
+        search: state.search,
+        filters: cloneFilters(state.filters),
+        focusPath: [...state.focusPath],
+        selectedId: state.selectedId,
+      };
+    }
+    recompute({
+      semanticAsk: ask,
+      semanticHitIds: [...new Set(hitIds)],
+      focusPath: [],
+      selectedId: hitIds[0] ?? null,
+    });
+  },
+  /** Leave Ask Prisma and restore search / filters / selection from before the ask. */
+  clearSemanticHits(): void {
+    const snapshot = semanticViewSnapshot;
+    clearSemanticSnapshot();
+    if (snapshot) {
+      recompute({
+        semanticHitIds: [],
+        semanticAsk: "",
+        search: snapshot.search,
+        filters: snapshot.filters,
+        focusPath: snapshot.focusPath,
+        selectedId: snapshot.selectedId,
+      });
+      return;
+    }
+    recompute({ semanticHitIds: [], semanticAsk: "", search: "" });
   },
   setFilters(filters: FilterState): void {
-    recompute({ filters, focusPath: [] });
+    clearSemanticSnapshot();
+    recompute({ filters, focusPath: [], semanticHitIds: [], semanticAsk: "" });
   },
   patchFilters(patch: Partial<FilterState>): void {
     recompute({ filters: { ...state.filters, ...patch }, focusPath: [] });
   },
   clearFilters(): void {
-    recompute({ filters: emptyFilterState(), search: "", focusPath: [] });
+    clearSemanticSnapshot();
+    recompute({ filters: emptyFilterState(), search: "", focusPath: [], semanticHitIds: [], semanticAsk: "" });
   },
   patchConfig(patch: Partial<AppConfig>): void {
     recompute({ config: { ...state.config, ...patch } });
@@ -377,6 +472,10 @@ export const actions = {
     setState({ focusPath, selectedId: null });
   },
   navigateBack(): void {
+    if (state.semanticHitIds.length > 0) {
+      actions.clearSemanticHits();
+      return;
+    }
     if (state.focusPath.length === 0) {
       setState({ selectedId: null });
       return;
@@ -462,6 +561,7 @@ export const actions = {
     linkedDirectory = null;
     linkedDirectoryKey = null;
     directoryPrefetch = null;
+    clearSemanticSnapshot();
     recompute({
       index: createSampleIndex(),
       handles: new Map(),
@@ -469,6 +569,10 @@ export const actions = {
       selectedId: null,
       focusPath: [],
       scan: null,
+      search: "",
+      semanticHitIds: [],
+      semanticAsk: "",
+      filters: emptyFilterState(),
     });
   },
   loadIndex(index: FileIndex): void {

@@ -19,6 +19,8 @@ The application must:
 - Visualize folders/files with FoamTree (relaxed / squarified / flattened stacking).
 - Support search, filtering, grouping (including ACC taxonomy levels), coloring, sizing, drill-down, and details.
 - Voice commands start when Voice is on and pause on “Prisma down” (open a cell the way a double-click does, select every cell, back, reset, filter). “Prisma” resumes them.
+- Natural-language Ask Prisma over the loaded JSON index.
+- `window.prisma` API to drive the original app from scripts (click/open cells, back/reset, filters, search/ask, panels, load/export, camera, voice).
 - Provide a FoamTree **Settings** panel with color and style presets.
 - Provide **Analysis** charts for the focused / open folder scope (bubble + line).
 - Provide **Preview** for selected PDF, IFC (3D), image, video, audio, and text files.

@@ -294,6 +294,46 @@ function emptyRoot(name: string): VizNode {
   };
 }
 
+/**
+ * Temporary FoamTree layout for Ask Prisma: hit files as root siblings
+ * so they sit beside each other on the map (not nested under folders).
+ */
+export function buildSemanticResultTree(
+  index: FileIndex,
+  hitIds: string[],
+  sizeBy: SizeBy,
+  customProperty: string,
+  label = "Ask results",
+): VizNode {
+  const byId = new Map(index.items.map((item) => [item.id, item]));
+  const files = hitIds
+    .map((id) => byId.get(id))
+    .filter((node): node is IndexNode => Boolean(node) && node.nodeType === "file");
+
+  const root = emptyRoot(label);
+  root.id = "semantic:root";
+  root.sourceId = index.root.id;
+  root.children = files.map((file) => ({
+    id: `fs:${file.id}`,
+    sourceId: file.id,
+    label: file.name,
+    weight: defaultSizeMapper.weight(file, sizeBy, customProperty),
+    colorKey: file.category ?? file.extension ?? file.name,
+    nodeType: "file" as const,
+    category: file.category,
+    extension: file.extension,
+    fileType: file.fileType,
+    size: file.size,
+    fileCount: 1,
+    modifiedAt: file.modifiedAt,
+    children: [],
+  }));
+  root.weight = root.children.reduce((sum, child) => sum + child.weight, 0) || 1;
+  root.size = root.children.reduce((sum, child) => sum + child.size, 0);
+  root.fileCount = root.children.length;
+  return root;
+}
+
 export class FolderGrouping implements GroupingStrategy {
   build(index: FileIndex, visibleIds: Set<string>, sizeBy: SizeBy, customProperty: string): VizNode {
     return buildFolderTree(index, visibleIds, sizeBy, customProperty);

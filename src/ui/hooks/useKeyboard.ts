@@ -1,10 +1,10 @@
-import { actions, usePrisma } from "@/state/store";
+import { actions, getState, usePrisma } from "@/state/store";
 import { focusSidebarSearch } from "@/ui/layout/sidebarSearch";
 import { resetFoamTreeView } from "@/visualization/foamtree/host";
 import { useEffect } from "react";
 
 export function useKeyboard(): void {
-  const { panels, selectedId } = usePrisma();
+  const { panels, selectedId, semanticHitIds } = usePrisma();
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
@@ -54,6 +54,12 @@ export function useKeyboard(): void {
           actions.setPanel("settings", false);
           return;
         }
+        if (getState().semanticHitIds.length > 0) {
+          event.preventDefault();
+          actions.clearSemanticHits();
+          resetFoamTreeView();
+          return;
+        }
         if (selectedId) {
           actions.select(null);
           resetFoamTreeView();
@@ -80,10 +86,15 @@ export function useKeyboard(): void {
           return;
         }
         event.preventDefault();
+        if (getState().semanticHitIds.length > 0) {
+          actions.clearSemanticHits();
+          resetFoamTreeView();
+          return;
+        }
         actions.navigateBack();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [panels, selectedId]);
+  }, [panels, selectedId, semanticHitIds]);
 }

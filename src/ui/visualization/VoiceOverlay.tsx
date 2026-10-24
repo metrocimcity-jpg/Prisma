@@ -3,6 +3,7 @@ import { useVoiceState } from "@/voice/voiceListener";
 const LEGEND: Array<[string, string]> = [
   ["Prisma", "Wake up"],
   ["Prisma down", "Go to sleep"],
+  ["Ask …", "Semantic search on the map"],
   ["Select …", "Open that cell"],
   ["Select every cell", "Select all visible cells"],
   ["Back", "Go back"],
