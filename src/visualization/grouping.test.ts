@@ -50,15 +50,17 @@ describe("grouping", () => {
     expect(north?.children.map((child) => child.label)).toEqual(["rvt"]);
   });
 
-  it("groups ACC categories by the full parameter name", () => {
+  it("labels discipline and sub-program groups with the abbreviation", () => {
     const index = buildFileIndex({
       rootName: "p",
       rootPath: "p",
       entries: [file("L-AC-AE-GT-F0326-ACS0-DRG-1.rvt", 10)],
     });
     const visible = new Set(index.items.filter((item) => item.nodeType === "file").map((item) => item.id));
-    const tree = buildGroupedTree(index, visible, ["accSubProgram"], "fileSize", "");
-    expect(tree.children.map((child) => child.label)).toEqual(["Airfield Electrical & Civil"]);
+    const subprogram = buildGroupedTree(index, visible, ["accSubProgram"], "fileSize", "");
+    expect(subprogram.children.map((child) => child.label)).toEqual(["AE"]);
+    const discipline = buildGroupedTree(index, visible, ["accDiscipline"], "fileSize", "");
+    expect(discipline.children.map((child) => child.label)).toEqual(["ACS0"]);
   });
 });
 

@@ -209,6 +209,16 @@ function displayValue(item: AccTaxonomyItem): string {
 
 const STORED_CODE = /^([A-Za-z0-9]+)\s*\[/;
 
+const ABBREVIATED_ACC_KEYS = new Set(["ACC-Discipline", "ACC-Sub Program"]);
+
+/** Label shown on the map and charts. Discipline and sub-program use the taxonomy code. */
+export function displayAccValue(levelKey: string, raw: string): string {
+  if (ABBREVIATED_ACC_KEYS.has(levelKey)) {
+    return abbreviateAccValue(levelKey, raw);
+  }
+  return presentAccValue(levelKey, raw);
+}
+
 /** Resolve a stored code, `CODE [name]`, or plain name to the full parameter name. */
 export function presentAccValue(levelKey: string, raw: string): string {
   const trimmed = raw.trim();
@@ -272,14 +282,14 @@ export function accDisciplineName(raw: string): string {
   return presented === "(none)" ? "No discipline" : presented;
 }
 
-/** Readable subprogram name for the chart axis. */
+/** Subprogram abbreviation for the chart axis. */
 export function accSubprogramName(raw: string): string {
   const trimmed = raw.trim();
   if (trimmed.length === 0) {
     return "No subprogram";
   }
-  const presented = presentAccValue("ACC-Sub Program", trimmed);
-  return presented === "(none)" ? "No subprogram" : presented;
+  const code = abbreviateAccValue("ACC-Sub Program", trimmed);
+  return code === "(none)" ? "No subprogram" : code;
 }
 
 export function accMetadataRaw(metadata: Record<string, unknown> | undefined, key: string): string | null {

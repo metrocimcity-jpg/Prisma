@@ -1,5 +1,5 @@
 import type { FileIndex, IndexNode } from "@/data/types";
-import { ACC_METADATA_KEYS, accMetadataRaw, presentAccValue } from "@/metadata/accTaxonomy";
+import { ACC_METADATA_KEYS, accMetadataRaw, displayAccValue } from "@/metadata/accTaxonomy";
 import type { GroupBy, GroupLevel, SizeBy, VizNode } from "./types";
 import { defaultSizeMapper } from "./SizeMapper";
 
@@ -22,7 +22,7 @@ function metadataLabel(node: IndexNode, property: string): string {
   }
   const text = String(value);
   if ((ACC_METADATA_KEYS as readonly string[]).includes(property)) {
-    return presentAccValue(property, text);
+    return displayAccValue(property, text);
   }
   return text;
 }
@@ -34,7 +34,7 @@ function groupKey(node: IndexNode, key: GroupLevel, customProperty: string): str
   const accKey = ACC_GROUP_KEYS[key as GroupBy];
   if (accKey) {
     const value = accMetadataRaw(node.metadata, accKey);
-    return value === null ? "(none)" : presentAccValue(accKey, value);
+    return value === null ? "(none)" : displayAccValue(accKey, value);
   }
   switch (key) {
     case "extension":
@@ -65,7 +65,7 @@ function groupKey(node: IndexNode, key: GroupLevel, customProperty: string): str
         return "(none)";
       }
       if ((ACC_METADATA_KEYS as readonly string[]).includes(customProperty)) {
-        return presentAccValue(customProperty, String(value));
+        return displayAccValue(customProperty, String(value));
       }
       return String(value);
     }

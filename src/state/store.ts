@@ -485,6 +485,9 @@ export const actions = {
   togglePanel(panel: "filters" | "details"): void {
     setState({ panels: { ...state.panels, [panel]: !state.panels[panel] } });
   },
+  revealFilePreview(): void {
+    setState({ panels: { ...state.panels, preview: true, settings: false } });
+  },
   setPanel(panel: "settings" | "preview" | "analysis" | "commandPalette" | "sharePointBrowser", open: boolean): void {
     const panels = { ...state.panels, [panel]: open };
     if (open && panel === "settings") {
@@ -688,7 +691,7 @@ export const actions = {
       const result = await job.done;
       if (!state.index) {
         recompute({
-          index: result.index,
+          index: enrichFileIndexWithAccTaxonomy(result.index),
           handles: result.handles,
           scanning: false,
           selectedId: null,
@@ -703,7 +706,7 @@ export const actions = {
       }
       const merged = mergeFileIndexes(state.index, state.handles, result.index, result.handles, handle.name);
       recompute({
-        index: merged.index,
+        index: enrichFileIndexWithAccTaxonomy(merged.index),
         handles: merged.handles,
         scanning: false,
         selectedId: null,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { abbreviateAccValue, formatAccLabel, inferAccTaxonomy, isAccAcceleratorNamed, mergeAccTaxonomyMetadata } from "@/metadata/accTaxonomy";
+import { abbreviateAccValue, displayAccValue, formatAccLabel, inferAccTaxonomy, isAccAcceleratorNamed, mergeAccTaxonomyMetadata } from "@/metadata/accTaxonomy";
 
 describe("formatAccLabel", () => {
   it("uses the full parameter name and drops the code", () => {
@@ -13,6 +13,17 @@ describe("formatAccLabel", () => {
     expect(formatAccLabel("Aeronautical Communication System", "ACS0")).toBe(
       "Aeronautical Communication System",
     );
+  });
+});
+
+describe("displayAccValue", () => {
+  it("shows only the abbreviation for discipline and sub-program", () => {
+    expect(displayAccValue("ACC-Sub Program", "Airfield Electrical & Civil")).toBe("AE");
+    expect(displayAccValue("ACC-Discipline", "Aeronautical Communication System — Voice Communication Systems")).toBe(
+      "ACS1",
+    );
+    expect(displayAccValue("ACC-Document Type", "Model - 3D")).toBe("Model - 3D");
+    expect(displayAccValue("ACC-Location", "FEC A")).toBe("FEC A");
   });
 });
 

@@ -2,8 +2,22 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 interface SidebarSelectOption {
-  value: string;
+  value?: string;
   label: string;
+  children?: readonly SidebarSelectOption[];
+}
+
+function selectedLabel(options: readonly SidebarSelectOption[], value: string): string {
+  for (const option of options) {
+    if (option.value === value) {
+      return option.label;
+    }
+    const child = option.children?.find((item) => item.value === value);
+    if (child) {
+      return `${option.label} · ${child.label}`;
+    }
+  }
+  return value;
 }
 
 interface SidebarSelectProps {
@@ -31,7 +45,7 @@ export function SidebarSelect({
   const menuRef = useRef<HTMLUListElement>(null);
   const listId = useId();
   const [box, setBox] = useState({ top: 0, left: 0, width: 0, maxHeight: 240 });
-  const current = options.find((option) => option.value === value)?.label ?? value;
+  const current = selectedLabel(options, value);
 
   function place(): void {
     const rect = triggerRef.current?.getBoundingClientRect();
@@ -107,29 +121,49 @@ export function SidebarSelect({
               aria-label={ariaLabel}
               style={{ top: box.top, left: box.left, width: box.width, maxHeight: box.maxHeight }}
             >
-              {options.map((option) => {
-                const selected = option.value === value;
-                return (
-                  <li key={option.value}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={selected}
-                      className={selected ? "is-on" : undefined}
-                      onClick={() => {
-                        onChange(option.value);
-                        setOpen(false);
-                      }}
-                    >
-                      {option.label}
-                    </button>
-                  </li>
-                );
+              {options.flatMap((option) => {
+                const rows = option.children?.length
+                  ? [
+                      <li key={`${option.label}-group`} className="sidebar-select-group" role="presentation">
+                        {option.label}
+                      </li>,
+                      ...option.children.map((child) => optionRow(child, value, true, onChange, () => setOpen(false))),
+                    ]
+                  : [optionRow(option, value, false, onChange, () => setOpen(false))];
+                return rows;
               })}
             </ul>,
             document.body,
           )
         : null}
     </div>
+  );
+}
+
+function optionRow(
+  option: SidebarSelectOption,
+  value: string,
+  child: boolean,
+  onChange: (value: string) => void,
+  close: () => void,
+): JSX.Element {
+  const selected = option.value === value;
+  return (
+    <li key={option.value ?? option.label}>
+      <button
+        type="button"
+        role="option"
+        aria-selected={selected}
+        className={[selected ? "is-on" : "", child ? "is-child" : ""].filter(Boolean).join(" ") || undefined}
+        onClick={() => {
+          if (option.value) {
+            onChange(option.value);
+          }
+          close();
+        }}
+      >
+        {option.label}
+      </button>
+    </li>
   );
 }

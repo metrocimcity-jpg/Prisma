@@ -42,7 +42,7 @@ describe("analysisBubbles", () => {
       now,
     );
     expect(bubble?.ageWeeks).toBeCloseTo(2, 5);
-    expect(bubble?.subprogram).toBe("Airfield Electrical & Civil");
+    expect(bubble?.subprogram).toBe("AE");
     expect(bubble?.size).toBe(91_000_000);
   });
 
@@ -56,7 +56,7 @@ describe("analysisBubbles", () => {
       }),
     ]);
     expect(bubbles.map((bubble) => bubble.id)).toEqual(["tagged"]);
-    expect(bubbles[0]?.subprogram).toBe("Airfield Electrical & Civil");
+    expect(bubbles[0]?.subprogram).toBe("AE");
   });
 
   it("keeps only dots inside the brush rectangle", () => {
@@ -79,7 +79,7 @@ describe("analysisBubbles", () => {
       now,
     );
     const x = (weeks: number) => weeks * 10;
-    const y = (subprogram: string) => (subprogram === "Airfield Electrical & Civil" ? 40 : 120);
+    const y = (subprogram: string) => (subprogram === "AE" ? 40 : 120);
     const brushed = bubblesInBrush(bubbles, [[0, 0], [30, 80]], x, y);
     expect(brushed.map((bubble) => bubble.id)).toEqual(["inside"]);
     expect(bubblesInBrush(bubbles, null, x, y)).toEqual([]);

@@ -10,6 +10,7 @@ import { GENERATOR_VERSION, SCHEMA_VERSION } from "./types";
 import { createNodeId, parentRelativePath } from "./ids";
 import type { FileClassifier } from "@/metadata/FileClassifier";
 import { defaultClassifier } from "@/metadata/FileClassifier";
+import { applyAeVersionHistory } from "@/data/aeVersionHistory";
 import { mergeAccTaxonomyMetadata } from "@/metadata/accTaxonomy";
 
 function emptyStats(): FolderStats {
@@ -296,7 +297,7 @@ function escapeCsv(value: string): string {
 
 /** Attach ACC taxonomy metadata to every file node (safe to run on JSON loads too). */
 export function enrichFileIndexWithAccTaxonomy(index: FileIndex): FileIndex {
-  return {
+  const tagged: FileIndex = {
     ...index,
     items: index.items.map((item) => {
       if (item.nodeType !== "file") {
@@ -309,4 +310,5 @@ export function enrichFileIndexWithAccTaxonomy(index: FileIndex): FileIndex {
       return { ...item, metadata };
     }),
   };
+  return applyAeVersionHistory(tagged);
 }

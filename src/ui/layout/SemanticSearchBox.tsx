@@ -8,7 +8,7 @@ import {
   stopAskDictation,
   type AskDictationStatus,
 } from "@/voice/askDictation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /** One-click semantic chips — toggle several for a multi-search with “ / ”. */
 const QUICK_ASKS = [
@@ -21,33 +21,47 @@ const QUICK_ASKS = [
   "ACC-Discipline=ELE7",
 ] as const;
 
-const PLACEHOLDER = "3 newer revit / last month pdfs / two weeks ago dwg";
+const PLACEHOLDER = "Ask for a file";
 
 const api = createPrismaApi();
 
-export function SemanticSearchBox(): JSX.Element {
+export function SemanticSearchBox({ onRecordingChange }: { onRecordingChange?: (recording: boolean) => void }): JSX.Element {
   const [ask, setAsk] = useState("");
   const [result, setResult] = useState<PrismaAskResult | null>(null);
-  const [busy, setBusy] = useState(false);
   const [dictation, setDictation] = useState<AskDictationStatus>("idle");
   const [dictationMessage, setDictationMessage] = useState("");
   const voiceOk = isAskDictationSupported();
   const activeParts = new Set(splitSemanticAsks(ask).map((part) => part.toLowerCase()));
+  const askRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => () => stopAskDictation(), []);
+  useEffect(() => {
+    const node = askRef.current;
+    if (!node) {
+      return;
+    }
+    node.style.height = "0px";
+    node.style.height = `${node.scrollHeight}px`;
+  }, [ask]);
+
+  useEffect(() => {
+    onRecordingChange?.(dictation === "listening");
+  }, [dictation, onRecordingChange]);
+
+  useEffect(
+    () => () => {
+      stopAskDictation();
+      onRecordingChange?.(false);
+    },
+    [onRecordingChange],
+  );
 
   function runAsk(text: string): void {
     const query = text.trim();
     if (!query) {
       return;
     }
-    setBusy(true);
-    try {
-      const next = api.ask(query);
-      setResult(next);
-    } finally {
-      setBusy(false);
-    }
+    const next = api.ask(query);
+    setResult(next);
   }
 
   function toggleChip(chip: string): void {
@@ -65,7 +79,7 @@ export function SemanticSearchBox(): JSX.Element {
     }
   }
 
-  function toggleMic(autoShow: boolean): void {
+  function toggleMic(): void {
     if (dictation === "listening") {
       stopAskDictation();
       setDictation("idle");
@@ -84,9 +98,6 @@ export function SemanticSearchBox(): JSX.Element {
         setAsk(text);
         setDictation("idle");
         setDictationMessage("");
-        if (autoShow) {
-          runAsk(text);
-        }
       },
     });
   }
@@ -97,7 +108,6 @@ export function SemanticSearchBox(): JSX.Element {
     <div className="semantic-ask">
       <div className="semantic-ask-head">
         <h3>Ask Prisma</h3>
-        <span className="semantic-ask-hint">Multi-search with / between asks</span>
       </div>
       <div className="semantic-ask-chips" role="group" aria-label="Quick semantic asks">
         {QUICK_ASKS.map((chip) => {
@@ -108,7 +118,7 @@ export function SemanticSearchBox(): JSX.Element {
               type="button"
               className={`semantic-ask-chip${on ? " is-on" : ""}`}
               aria-pressed={on}
-              title={on ? `Remove “${chip}” from multi-search` : `Add “${chip}” to multi-search`}
+              title={on ? `Remove “${chip}”` : `Add “${chip}”`}
               onClick={() => toggleChip(chip)}
             >
               {chip}
@@ -121,9 +131,10 @@ export function SemanticSearchBox(): JSX.Element {
           Ask for a file in plain English
         </label>
         <textarea
+          ref={askRef}
           id="semantic-ask-input"
           className="semantic-ask-input"
-          rows={3}
+          rows={1}
           value={ask}
           placeholder={PLACEHOLDER}
           onChange={(event) => setAsk(event.target.value)}
@@ -141,38 +152,14 @@ export function SemanticSearchBox(): JSX.Element {
             title={dictation === "listening" ? "Stop listening" : "Speak your ask"}
             aria-pressed={dictation === "listening"}
             disabled={!voiceOk || dictation === "unsupported"}
-            onClick={() => toggleMic(false)}
+            onClick={() => toggleMic()}
           >
             <MicIcon />
             <span className="sr-only">{dictation === "listening" ? "Stop listening" : "Speak your ask"}</span>
           </button>
-          <button
-            type="button"
-            className={`semantic-ask-speak${dictation === "listening" ? " is-on" : ""}`}
-            title={dictation === "listening" ? "Stop listening" : "Speak and show on map"}
-            disabled={!voiceOk || dictation === "unsupported"}
-            onClick={() => toggleMic(true)}
-          >
-            {dictation === "listening" ? "Listening…" : "Speak to map"}
-          </button>
         </div>
       </div>
       {dictationMessage ? <p className="semantic-ask-voice-status">{dictationMessage}</p> : null}
-      <div className="semantic-ask-actions">
-        <button type="button" className="semantic-ask-run" disabled={busy || ask.trim().length === 0} onClick={() => runAsk(ask)}>
-          {partCount > 1 ? `Show ${partCount} asks on map` : "Show on map"}
-        </button>
-        <button
-          type="button"
-          className="semantic-ask-example"
-          onClick={() => {
-            setAsk(PLACEHOLDER);
-            runAsk(PLACEHOLDER);
-          }}
-        >
-          Try multi
-        </button>
-      </div>
       {result ? <AskResultCard result={result} partCount={partCount} onSelect={(id) => api.select(id)} /> : null}
     </div>
   );

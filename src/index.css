@@ -770,7 +770,8 @@ select {
 
 .semantic-ask-field {
   position: relative;
-  display: grid;
+  display: flex;
+  align-items: flex-end;
   gap: 8px;
 }
 
@@ -780,10 +781,14 @@ select {
 }
 
 .semantic-ask-input {
-  width: 100%;
-  min-height: 68px;
-  resize: vertical;
-  padding: 8px 10px 44px;
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  max-height: 160px;
+  resize: none;
+  overflow: auto;
+  padding: 8px 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.25);
@@ -799,12 +804,11 @@ select {
 }
 
 .semantic-ask-voice {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
+  position: static;
   display: flex;
   align-items: center;
   gap: 6px;
+  flex: 0 0 auto;
 }
 
 .semantic-ask-mic,
@@ -1039,12 +1043,21 @@ select {
   stroke-linejoin: round;
 }
 
+.sidebar .nav-btn svg .record-dot {
+  fill: #fb7185;
+  stroke: none;
+}
+
 .sidebar .nav-btn.active {
   width: 46px;
   height: 46px;
   background: rgba(59, 130, 246, 0.15);
   color: #a9c8ff;
   box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2), 0 7px 20px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar .nav-btn.is-recording {
+  color: #fb7185;
 }
 
 .sidebar .active-rail {
@@ -1286,6 +1299,25 @@ select {
   background: rgba(59, 130, 246, 0.15);
   border-color: rgba(59, 130, 246, 0.35);
   color: #a9c8ff;
+}
+
+.sidebar-select-group {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: flex-start;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  font-size: 13.2px;
+  font-weight: 500;
+  text-align: left;
+  background: rgba(4, 13, 23, 0.55);
+  color: #9db6d6;
+}
+
+.sidebar-select-menu button.is-child {
+  padding-left: 22px;
 }
 
 .sidebar .chip {
@@ -2159,6 +2191,53 @@ input.search {
   padding: 6px 8px;
 }
 
+.analysis-schedule button.analysis-filter-switch,
+.analysis-schedule button.analysis-filter-switch:hover,
+.analysis-schedule button.analysis-filter-switch:active {
+  width: auto;
+  flex: 0 0 auto;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 13.2px;
+  font-weight: 500;
+  transform: none;
+  cursor: pointer;
+}
+
+.analysis-filter-track {
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.analysis-filter-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease;
+}
+
+.analysis-filter-switch.is-on .analysis-filter-track {
+  background: #3b82f6;
+}
+
+.analysis-filter-switch.is-on .analysis-filter-track::after {
+  transform: translateX(16px);
+}
+
 .analysis-scroll {
   flex: 1;
   min-height: 0;
@@ -2178,10 +2257,52 @@ input.search {
   min-height: 0;
 }
 
+.growing-plot {
+  flex: 1 1 280px;
+  min-height: 280px;
+}
+
 .analysis-plot svg {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.growing-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.growing-controls input[type="range"] {
+  flex: 1;
+  width: auto;
+  margin: 0;
+}
+
+.growing-date {
+  min-width: 11ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.analysis-schedule .growing-legend-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.analysis-schedule .growing-legend-actions button,
+.analysis-schedule .growing-legend-actions button:hover,
+.analysis-schedule .growing-legend-actions button:active {
+  width: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #a9c8ff;
+  font-size: 13.2px;
+  font-weight: 600;
+  transform: none;
 }
 
 .analysis-legend {
@@ -2193,6 +2314,12 @@ input.search {
   list-style: none;
   color: var(--text);
   font-size: 14.4px;
+}
+
+.analysis-chart:has(.growing-plot) .analysis-legend {
+  flex: 0 1 auto;
+  max-height: 88px;
+  overflow: auto;
 }
 
 .analysis-legend li.is-faded {
@@ -2234,6 +2361,67 @@ input.search {
   height: 3px;
   border: 0;
   border-radius: 2px;
+}
+
+.analysis-swatch.is-square {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 2px;
+}
+
+.analysis-chart:has(.growing-plot) .analysis-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.growing-discipline {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #fff;
+}
+
+.growing-discipline.is-off {
+  opacity: 0.55;
+}
+
+.growing-discipline input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.growing-discipline .analysis-swatch.is-square {
+  position: relative;
+  width: 14px;
+  height: 14px;
+}
+
+.growing-discipline input:checked + .analysis-swatch.is-square::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #111;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.growing-discipline input:focus-visible + .analysis-swatch.is-square {
+  outline: 2px solid var(--accent-dim);
+  outline-offset: 2px;
 }
 
 .analysis-plot .selection {

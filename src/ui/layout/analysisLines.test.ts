@@ -36,7 +36,7 @@ describe("analysisLines", () => {
       }),
     ]);
     expect(points.map((point) => point.id)).toEqual(["ok"]);
-    expect(points[0]?.subprogram).toBe("Airfield Electrical & Civil");
+    expect(points[0]?.subprogram).toBe("AE");
     expect(points[0]?.modifiedAt).toBe(Date.parse(modified));
     expect(points[0]?.fileCount).toBe(1);
   });
@@ -63,9 +63,9 @@ describe("analysisLines", () => {
       }),
     ]);
     expect(points.map((point) => [point.id, point.subprogram, point.fileCount])).toEqual([
-      ["early", "Airfield Electrical & Civil", 1],
+      ["early", "AE", 1],
       ["other", "Passenger Processing", 1],
-      ["late", "Airfield Electrical & Civil", 2],
+      ["late", "AE", 2],
     ]);
   });
 });

@@ -13,10 +13,22 @@ import { SidebarSelect } from "@/ui/layout/SidebarSelect";
 import { formatPropertyLabel, groupingMetadataKeys, hierarchyCatalog } from "@/ui/layout/hierarchy";
 import type { ColorBy, GroupBy, GroupLevel, LayoutMode } from "@/visualization/types";
 import { indexShowsAccTaxonomy } from "@/metadata/accTaxonomy";
-import { consumeSidebarSearchFocus } from "@/ui/layout/sidebarSearch";
+import { consumeSidebarSearchFocus, subscribeSidebarOverview, type ChartFileGlance } from "@/ui/layout/sidebarSearch";
 import { useEffect, useRef, useState } from "react";
 
-type SidebarSection = "search" | "view" | "overview" | "selection";
+type SidebarSection = "record" | "search" | "view" | "overview" | "selection";
+
+function RecordIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M6 10.5a6 6 0 0 0 12 0" />
+      <path d="M12 16.5V20" />
+      <path d="M9 20h6" />
+      <circle className="record-dot" cx="18.5" cy="5.5" r="2.2" />
+    </svg>
+  );
+}
 
 function searchShortcutLabel(): string {
   const mac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent);
@@ -88,6 +100,48 @@ const GROUP_PRESETS = new Set([
   "custom",
 ]);
 
+function ChartFileOverview({ glance }: { glance: ChartFileGlance }): JSX.Element {
+  const fill = colorForExt(glance.extension);
+  return (
+    <>
+      <div className="detail-title" title={glance.name}>
+        {glance.name}
+      </div>
+      <div className="stat-line">
+        <span className="k">Files</span>
+        <span className="v">{formatNumber(1)}</span>
+      </div>
+      <div className="stat-line">
+        <span className="k">Total size</span>
+        <span className="v">{formatBytes(Math.max(0, glance.sizeMb) * 1024 * 1024)}</span>
+      </div>
+      <div className="stat-line">
+        <span className="k">Version</span>
+        <span className="v">{glance.version.toFixed(1)}</span>
+      </div>
+      <div className="stat-line">
+        <span className="k">Date</span>
+        <span className="v">{glance.dateLabel}</span>
+      </div>
+      <div className="stat-line">
+        <span className="k">Discipline</span>
+        <span className="v">{glance.discipline}</span>
+      </div>
+      <label className="field-label">Top types by size</label>
+      <div className="legend-row">
+        <span className="sw" style={{ background: fill }} />
+        <span className="name" title={glance.extension}>
+          {glance.extension}
+        </span>
+        <span className="bar-track">
+          <span className="bar-fill" style={{ width: "100%", background: fill }} />
+        </span>
+        <span className="pct">100.0%</span>
+      </div>
+    </>
+  );
+}
+
 function groupValue(groupBy: GroupLevel[]): string {
   if (groupBy.length === 1 && groupBy[0] === "folder") {
     return "folder";
@@ -108,6 +162,8 @@ export function Sidebar(): JSX.Element {
   const { config, index, vizTree, focusPath, selectedId, search, filters } = usePrisma();
   const [collapsed, setCollapsed] = useState(false);
   const [active, setActive] = useState<SidebarSection>("search");
+  const [chartGlance, setChartGlance] = useState<ChartFileGlance | null>(null);
+  const [recording, setRecording] = useState(false);
   const [searchDraft, setSearchDraft] = useState(search);
   const searchRef = useRef<HTMLInputElement>(null);
   const viz = config.visualization;
@@ -140,6 +196,22 @@ export function Sidebar(): JSX.Element {
     }
     return () => window.removeEventListener("prisma-focus-search", onFocusSearch);
   }, [collapsed]);
+
+  useEffect(
+    () =>
+      subscribeSidebarOverview((glance) => {
+        setChartGlance(glance);
+        setActive("overview");
+        setCollapsed(false);
+      }),
+    [],
+  );
+
+  useEffect(() => {
+    if (chartGlance && chartGlance.id !== selectedId) {
+      setChartGlance(null);
+    }
+  }, [chartGlance, selectedId]);
 
   function reveal(section: SidebarSection): void {
     setActive(section);
@@ -216,6 +288,7 @@ export function Sidebar(): JSX.Element {
   }
 
   const rail = [
+    { id: "record" as const, label: "Recording", icon: <RecordIcon /> },
     { id: "search" as const, label: "Search", icon: <SearchIcon /> },
     { id: "view" as const, label: "Structure", icon: <ViewIcon /> },
     { id: "overview" as const, label: "Overview", icon: <OverviewIcon /> },
@@ -238,7 +311,13 @@ export function Sidebar(): JSX.Element {
         {rail.map((item) => (
           <button
             key={item.id}
-            className={active === item.id ? "nav-btn active" : "nav-btn"}
+            className={
+              active === item.id
+                ? "nav-btn active"
+                : item.id === "record" && recording
+                  ? "nav-btn is-recording"
+                  : "nav-btn"
+            }
             type="button"
             aria-label={item.label}
             aria-current={active === item.id ? "page" : undefined}
@@ -253,6 +332,8 @@ export function Sidebar(): JSX.Element {
 
       {!collapsed ? (
         <div className="sidebar-scroll" role="region" aria-label={rail.find((item) => item.id === active)?.label}>
+          {active === "record" ? <SemanticSearchBox onRecordingChange={setRecording} /> : null}
+
           {active === "search" ? (
             <>
               <div className="sidebar-search search-wrap">
@@ -266,7 +347,6 @@ export function Sidebar(): JSX.Element {
                 />
                 <kbd>{searchShortcutLabel()}</kbd>
               </div>
-              <SemanticSearchBox />
               <FilterPanel />
             </>
           ) : null}
@@ -365,7 +445,9 @@ export function Sidebar(): JSX.Element {
           {active === "overview" ? (
             <div className="card" id="sidebar-section-overview">
               <h3>Overview</h3>
-              {index && scope ? (
+              {chartGlance ? (
+                <ChartFileOverview glance={chartGlance} />
+              ) : index && scope ? (
                 <>
                   {!atRoot && scopeLabel ? (
                     <div className="detail-title" title={scopeLabel}>
